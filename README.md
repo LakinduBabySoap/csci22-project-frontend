@@ -111,8 +111,9 @@ csci22-project-frontend/
 │   │   └── ...            # Other reusable components (e.g., Navbar, VenueList)
 │   ├── lib/
 │   │   └── utils.js       # Utility functions (cn helper)
-│   ├── routes/            # File-based routes (replaces pages/)
-│   │   ├── _index.jsx      # Home page (/)
+│   ├── routes/            # File-based routes
+│   │   ├── __root.jsx     # Root layout (Navbar, Outlet)
+│   │   ├── index.jsx      # Home page (/)
 │   │   ├── login/
 │   │   │   └── index.jsx  # Login page (/login)
 │   │   ├── signup/

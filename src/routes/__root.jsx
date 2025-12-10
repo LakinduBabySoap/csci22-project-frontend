@@ -9,9 +9,11 @@ export const Route = createRootRoute({
 function RootComponent() {
    return (
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-         <div className="app min-h-screen bg-background text-foreground">
+         <div className="min-h-screen flex flex-col">
             <nav>{/* Navigation */}</nav>
-            <Outlet />
+            <div className="flex-1">
+               <Outlet />
+            </div>
          </div>
          <TanStackRouterDevtools />
       </ThemeProvider>

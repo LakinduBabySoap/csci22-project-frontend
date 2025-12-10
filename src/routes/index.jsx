@@ -1,12 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({
-   component: HomeComponent,
+   component: HomePage,
 })
 
-function HomeComponent() {
+function HomePage() {
    return (
-      <div className="container mx-auto p-4">
+      <div className="p-4">
          <h1 className="text-3xl font-bold">Cultural Events</h1>
          <p className="mt-4 text-muted-foreground">
             Welcome to the Cultural Events application
@@ -15,4 +15,4 @@ function HomeComponent() {
    )
 }
 
-export default HomeComponent
+export default HomePage
