@@ -42,7 +42,7 @@ BACKEND_API_URL=http://localhost:3000
 MAP_API_KEY=your_map_api_key_here
 ```
 
-### 4. R[un](https://reactrouter.com/how-to/file-route-conventions#folders-for-organization) the development server
+### 4. Run the development server
 
 ```bash
 npm run dev
@@ -52,12 +52,12 @@ The app will be available at `http://localhost:5173`
 
 ## Development Guidelines
 
-- **Branching**: Create a new branch from the main branch in git to work on your part. Remember to pull the changes in main branch before merging your branch back to main.
+- **Branching**: Create a new branch from the main branch in git `git checkout -b new-branch-name` to work on your part. Remember to pull the changes from main branch before merging your branch back to main.
 - **Code Files**: Create pages in the [corresponding directory](#Project-Structure). Follow [File-based Routing](https://tanstack.com/router/latest/docs/framework/react/routing/file-based-routing#directory-routes) for creating pages.
 - **React.js**: Use only **functional components**.
 - **Styling**:
    - Use [Tailwind CSS](https://tailwindcss.com/docs/styling-with-utility-classes) utility classes. **NEVER** write inline CSS using `style` attribute.
-   - Use Theme Colors from [Shadcn](https://ui.shadcn.com/docs/theming#convention).
+   - Use Theme Colors and components from [Shadcn](https://ui.shadcn.com/docs/theming#convention).
 - **Formatting**: Use Prettier to format on save. (Recommendation: Install [Prettier in your IDE](https://prettier.io/docs/editors#visual-studio-code))
 - **Imports**: Use `@/` alias for cleaner imports (e.g., `import { cn } from '@/lib/utils'`)
 
