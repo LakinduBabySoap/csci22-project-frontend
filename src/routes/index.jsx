@@ -1,6 +1,10 @@
-import React from 'react'
+import { createFileRoute } from '@tanstack/react-router'
 
-const Home = () => {
+export const Route = createFileRoute('/')({
+   component: HomeComponent,
+})
+
+function HomeComponent() {
    return (
       <div className="container mx-auto p-4">
          <h1 className="text-3xl font-bold">Cultural Events</h1>
@@ -11,4 +15,4 @@ const Home = () => {
    )
 }
 
-export default Home
+export default HomeComponent

@@ -1,13 +1,16 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import App from './App.jsx'
+import { RouterProvider, createRouter } from '@tanstack/react-router'
 import './index.css'
+
+// Import the generated route tree
+import { routeTree } from './routeTree.gen'
+
+// Create a new router instance
+const router = createRouter({ routeTree })
 
 ReactDOM.createRoot(document.getElementById('root')).render(
    <React.StrictMode>
-      <BrowserRouter>
-         <App />
-      </BrowserRouter>
-   </React.StrictMode>,
+      <RouterProvider router={router} />
+   </React.StrictMode>
 )

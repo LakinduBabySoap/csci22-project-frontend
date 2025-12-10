@@ -3,3 +3,4 @@ dist
 build
 .vite
 package-lock.json
+**/routeTree.gen.ts
