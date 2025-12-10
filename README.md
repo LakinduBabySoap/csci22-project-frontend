@@ -11,36 +11,34 @@ A React-based Single Page Application for browsing cultural events and venues.
 - **UI Components**: Shadcn UI
 - **HTTP Client**: Axios
 - **Icons**: Lucide React
+- **Code Formatting**: Prettier
 
-## Project Structure
+## Current Project Structure
 
 ```
-src/
-├── components/
-│   ├── ui/                 # Shadcn UI components
-│   ├── Navbar.jsx          # Navigation with avatar dropdown
-│   ├── LocationList.jsx    # List view with filtering/sorting
-│   ├── LocationMap.jsx     # Map view of all locations
-│   ├── LocationDetail.jsx  # Single location focused view
-│   └── ThemeToggle.jsx     # Dark/light theme switcher
-├── pages/
-│   ├── Login.jsx           # Login page
-│   ├── SignUp.jsx          # Sign up page
-│   ├── Home.jsx            # Main page with map & list
-│   ├── UserProfile.jsx     # User's favourite venues
-│   ├── EventList.jsx       # Admin: CRUD events
-│   └── UserList.jsx        # Admin: CRUD users
-├── services/
-│   └── api.js              # API calls to backend
-├── contexts/
-│   ├── AuthContext.jsx     # Authentication state
-│   ├── ThemeContext.jsx    # Theme state
-│   └── LanguageContext.jsx # i18n state
-├── lib/
-│   └── utils.js            # Utility functions
-├── App.jsx                 # Main app component
-├── main.jsx                # Entry point
-└── index.css               # Global styles
+csci22-project-frontend/
+├── public/                 # Static assets
+├── src/
+│   ├── components/
+│   │   └── ui/            # Shadcn UI components (to be added)
+│   ├── lib/
+│   │   └── utils.js       # Utility functions (cn helper)
+│   ├── pages/
+│   │   └── Home.jsx       # Home page component
+│   ├── App.jsx            # Main app component with routing
+│   ├── main.jsx           # Entry point
+│   └── index.css          # Global styles & Tailwind directives
+├── .env.example           # Environment variables template
+├── .gitignore             # Git ignore rules
+├── .prettierrc            # Prettier configuration
+├── .prettierignore        # Prettier ignore rules
+├── components.json        # Shadcn UI configuration
+├── index.html             # HTML template
+├── package.json           # Dependencies and scripts
+├── postcss.config.js      # PostCSS configuration
+├── tailwind.config.js     # Tailwind CSS configuration
+├── vite.config.js         # Vite configuration
+└── README.md              # This file
 ```
 
 ## Setup Instructions
@@ -62,11 +60,17 @@ This will install all required packages listed in `package.json`.
 
 ### 3. Environment Variables
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the root directory (copy from `.env.example`):
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` with your actual values:
 
 ```env
 VITE_API_URL=http://localhost:5000
-VITE_GOOGLE_MAPS_API_KEY=your_api_key_here
+VITE_GOOGLE_MAPS_API_KEY=your_actual_api_key_here
 ```
 
 ### 4. Run the development server
@@ -77,7 +81,17 @@ npm run dev
 
 The app will be available at `http://localhost:5173`
 
-### 5. Build for production
+### 5. Format code with Prettier
+
+```bash
+# Format all files
+npm run format
+
+# Check formatting without changing files
+npm run format:check
+```
+
+### 6. Build for production
 
 ```bash
 npm run build
@@ -106,7 +120,44 @@ npm run build
 
 ## Available Scripts
 
-- `npm run dev` - Start development server
+- `npm run dev` - Start development server (http://localhost:5173)
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build locally
+- `npm run format` - Format all source files with Prettier
+- `npm run format:check` - Check if files are formatted correctly
 
+## Adding Shadcn UI Components
+
+When you need to add a Shadcn UI component:
+
+```bash
+npx shadcn@latest add button
+npx shadcn@latest add card
+npx shadcn@latest add dropdown-menu
+# etc.
+```
+
+Components will be added to `src/components/ui/`
+
+## Development Guidelines
+
+- **Formatting**: Run `npm run format` before committing code
+- **Imports**: Use `@/` alias for cleaner imports (e.g., `import { cn } from '@/lib/utils'`)
+- **Styling**: Use Tailwind CSS utility classes
+- **Components**: Build reusable components in `src/components/`
+- **Pages**: Create page components in `src/pages/`
+- **API Calls**: Centralize API logic in `src/services/api.js`
+
+The frontend is configured to proxy API requests to the backend:
+
+- Backend URL: `http://localhost:5000` (configured in `vite.config.js`)
+- API requests to `/api/*` will be automatically proxied to the backend
+- Make sure the backend server is running before starting frontend development
+
+Example API call:
+```javascript
+import axios from 'axios'
+
+// This will call http://localhost:5000/api/locations
+const response = await axios.get('/api/locations')
+```
