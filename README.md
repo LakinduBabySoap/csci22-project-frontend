@@ -38,8 +38,8 @@ cp .env.example .env
 Then edit `.env` with your actual values:
 
 ```env
-BACKEND_API_URL=http://localhost:3000
-MAP_API_KEY=your_map_api_key_here
+VITE_BACKEND_API_URL=http://localhost:3000/api
+VITE_MAP_API_KEY=your_map_api_key_here
 ```
 
 ### 4. Run the development server
@@ -61,19 +61,15 @@ The app will be available at `http://localhost:5173`
 - **Formatting**: Use Prettier to format on save. (Recommendation: Install [Prettier in your IDE](https://prettier.io/docs/editors#visual-studio-code))
 - **Imports**: Use `@/` alias for cleaner imports (e.g., `import { cn } from '@/lib/utils'`)
 
-The frontend is configured to proxy API requests to the backend:
-
-- Backend URL: `http://localhost:3000` (configured in `.env`)
-- API requests to `/api/*` will be automatically proxied to the backend
-- Make sure the backend server is running before starting frontend development
-
-Example API call:
+Example API call (Recommended to create a instance of axios instead):
 
 ```javascript
 import axios from 'axios'
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_API_URL // configured in .env
+
 // This will call http://localhost:3000/api/venues
-const response = await axios.get('/api/venues')
+const response = await axios.get(`${API_BASE_URL}/venues')
 ```
 
 ## Features
@@ -127,6 +123,7 @@ csci22-project-frontend/
 │   ├── services/
 │   │   ├── auth.js        # Authenication API logic
 │   │   ├── events.js      # Events API logic
+│   │   ├── users.js       # Users API logic
 │   │   └── venues.js      # Venues API logic
 │   ├── hooks/             # Custom React hooks (if needed)
 │   ├── contexts/          # React contexts (e.g., for theme, auth)
