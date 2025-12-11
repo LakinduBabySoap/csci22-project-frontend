@@ -8,7 +8,7 @@ export const Route = createRootRoute({
 
 function RootComponent() {
    return (
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
          <div className="min-h-screen flex flex-col">
             <nav>{/* Navigation */}</nav>
             <div className="flex-1">
