@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState, useMemo } from 'react'
 
 export const Route = createFileRoute('/')({
-   component: HomePage,
+    component: HomePage,
 })
 
 // Default to be Pi Chiu Building, CUHK

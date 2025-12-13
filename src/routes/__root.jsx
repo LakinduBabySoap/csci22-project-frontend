@@ -2,6 +2,7 @@ import { createRootRoute, Outlet, Link, redirect } from "@tanstack/react-router"
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/mode-toggle";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createRootRoute({
 	component: RootComponent,
@@ -15,6 +16,9 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
+	const { isAuthenticated, role } = useAuth();
+	const isAdmin = isAuthenticated && role === "admin";
+
 	return (
 		<ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
 			<div className="flex h-screen flex-col">
@@ -27,20 +31,22 @@ function RootComponent() {
 					</div>
 					{/* Nav bar */}
 					<div className="flex items-center justify-center gap-6">
-						<nav className="flex items-center gap-8">
-                     		<Link
-								to="/events"
-								className="text-sm font-medium text-foreground/80 hover:text-foreground hover:underline"
-							>
-								Event List
-                     		</Link>
-                     		<Link
-								to="/users"
-								className="text-sm font-medium text-foreground/80 hover:text-foreground hover:underline"
-							>
-                        		User List
-                     		</Link>
-                  		</nav>
+						{isAdmin && (
+							<nav className="flex items-center gap-8">
+								<Link
+									to="/events"
+									className="text-sm font-medium text-foreground/80 hover:text-foreground hover:underline"
+								>
+									Event List
+								</Link>
+								<Link
+									to="/users"
+									className="text-sm font-medium text-foreground/80 hover:text-foreground hover:underline"
+								>
+									User List
+								</Link>
+							</nav>
+						)}
                		</div>
 
 					{/* Theme toggle & Profile icon */}
