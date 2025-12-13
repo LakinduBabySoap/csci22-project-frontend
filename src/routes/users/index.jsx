@@ -126,8 +126,8 @@ function UsersPage() {
 			accessorKey: "username",
 			header: ({ column }) => {
 				return (
-					<div>
-						<span className="align-baseline">Username</span>
+					<div className="flex items-center">
+						Username
 						<Button
 							variant="ghost"
 							className="pl-0"
@@ -143,8 +143,8 @@ function UsersPage() {
 			accessorKey: "email",
 			header: ({ column }) => {
 				return (
-					<div>
-						<span className="align-baseline">Email</span>
+					<div className="flex items-center">
+						Email
 						<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
 							<ArrowUpDown />
 						</Button>
@@ -209,7 +209,7 @@ function UsersPage() {
 			{/* User Table */}
 			<div>
 				{/* Create User Button + Search Bar*/}
-				<div className="flex justify-between py-4">
+				<div className="flex justify-between py-4 gap-4">
 					<Button onClick={handleCreateClick}>
 						<Plus /> Create User
 					</Button>
@@ -259,9 +259,6 @@ function UsersPage() {
 
 				{/* Pagination Controls */}
 				<div className="flex items-center justify-end space-x-2 py-4">
-					<div className="text-sm text-muted-foreground">
-						Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-					</div>
 					<Button
 						variant="outline"
 						size="sm"
@@ -270,6 +267,9 @@ function UsersPage() {
 					>
 						Previous
 					</Button>
+					<div className="text-sm text-muted-foreground">
+						Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+					</div>
 					<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
 						Next
 					</Button>
