@@ -56,8 +56,8 @@ The app will be available at `http://localhost:5173`
 - **Code Files**: Create pages in the [corresponding directory](#Project-Structure). Follow [File-based Routing](https://tanstack.com/router/latest/docs/framework/react/routing/file-based-routing#directory-routes) for creating pages.
 - **React.js**: Use only **functional components**.
 - **Styling**:
-   - Use [Tailwind CSS](https://tailwindcss.com/docs/styling-with-utility-classes) utility classes. **NEVER** write inline CSS using `style` attribute.
-   - Use Theme Colors and components from [Shadcn](https://ui.shadcn.com/docs/theming#convention).
+  - Use [Tailwind CSS](https://tailwindcss.com/docs/styling-with-utility-classes) utility classes. **NEVER** write inline CSS using `style` attribute.
+  - Use Theme Colors and components from [Shadcn](https://ui.shadcn.com/docs/theming#convention).
 - **Formatting**: Use Prettier to format on save. (Recommendation: Install [Prettier in your IDE](https://prettier.io/docs/editors#visual-studio-code))
 - **Imports**: Use `@/` alias for cleaner imports (e.g., `import { cn } from '@/lib/utils'`)
 
@@ -125,7 +125,7 @@ csci22-project-frontend/
 │   │   ├── events.js      # Events API logic
 │   │   ├── users.js       # Users API logic
 │   │   └── venues.js      # Venues API logic
-│   ├── hooks/             # Custom React hooks (if needed)
+│   ├── hooks/             # Custom React hooks (Authenication)
 │   ├── contexts/          # React contexts (e.g., for theme, auth)
 │   ├── App.jsx            # Main app component
 │   ├── main.jsx           # Entry point
