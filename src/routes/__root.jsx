@@ -4,9 +4,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/mode-toggle";
 
 export const Route = createRootRoute({
-   component: RootComponent,
-
-	beforeLoad: ({ context, location }) => {
+   	component: RootComponent,
+		beforeLoad: ({ context, location }) => {
 		if (!context.auth?.isAuthenticated && location.pathname !== "/login" && location.pathname !== "/signup") {
 			throw redirect({
 				to: "/login",
@@ -16,50 +15,50 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
-   return (
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-         <div className="flex h-screen flex-col">
-            <header className="grid grid-cols-[auto_1fr_auto] items-center border-b bg-background px-4 py-3">
-               {/* Logo */}
-               <div className="items-center">
-                  <Link to="/" className="text-xl font-bold text-foreground">
-                     Good Website
-                  </Link>
-               </div>
-               {/* Nav bar */}
-               <div className="flex items-center justify-center gap-6">
-                  <nav className="flex items-center gap-8">
-                     <Link
+	return (
+		<ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+			<div className="flex h-screen flex-col">
+				<header className="grid grid-cols-[auto_1fr_auto] items-center border-b bg-background px-4 py-3">
+					{/* Logo */}
+					<div className="items-center">
+						<Link to="/" className="text-xl font-bold text-foreground">
+							Good Website
+						</Link>
+					</div>
+					{/* Nav bar */}
+					<div className="flex items-center justify-center gap-6">
+						<nav className="flex items-center gap-8">
+                     		<Link
 								to="/events"
 								className="text-sm font-medium text-foreground/80 hover:text-foreground hover:underline"
 							>
 								Event List
-                     </Link>
-                     <Link
+                     		</Link>
+                     		<Link
 								to="/users"
 								className="text-sm font-medium text-foreground/80 hover:text-foreground hover:underline"
 							>
-                        User List
-                     </Link>
-                  </nav>
-               </div>
+                        		User List
+                     		</Link>
+                  		</nav>
+               		</div>
 
-               {/* Profile icon */}
-               <div className="flex items-center justify-end">
-                  <div className="flex items-center justify-center gap-6">
-                     <ModeToggle />
-                  </div>
-                  <div className="flex ml-2 h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground">
-                     U
-                  </div>
-               </div>
-                  <TanStackRouterDevtools />
-               </header>
+					{/* Theme toggle & Profile icon */}
+					<div className="flex items-center justify-end">
+						<div className="flex items-center justify-center gap-6">
+							<ModeToggle />
+						</div>
+						<div className="flex ml-2 h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground">
+							U
+						</div>
+					</div>
+					<TanStackRouterDevtools />
+				</header>
 
-            <div className="flex-1">
-               <Outlet />
-            </div>
-         </div>
+				<div className="flex-1">
+					<Outlet />
+				</div>
+			</div>
       </ThemeProvider>
    );
 }
