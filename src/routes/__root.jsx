@@ -4,8 +4,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/mode-toggle";
 
 export const Route = createRootRoute({
-   	component: RootComponent,
-		beforeLoad: ({ context, location }) => {
+	component: RootComponent,
+	beforeLoad: ({ context, location }) => {
 		if (!context.auth?.isAuthenticated && location.pathname !== "/login" && location.pathname !== "/signup") {
 			throw redirect({
 				to: "/login",
@@ -59,6 +59,6 @@ function RootComponent() {
 					<Outlet />
 				</div>
 			</div>
-      </ThemeProvider>
-   );
+		</ThemeProvider>
+	);
 }
