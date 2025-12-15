@@ -1,9 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState, useMemo } from 'react'
 import MapComponent from '@/components/mapView.jsx'
+import { getVenues } from '@/services/venues'
 
 export const Route = createFileRoute('/')({
-    component: HomePage,
+	component: HomePage,
 })
 
 // Default to be Pi Chiu Building, CUHK
@@ -13,155 +14,211 @@ const user_longitude = 114.20644
 const degToRad = (deg) => (deg * Math.PI) / 180
 
 function HomePage() {
-  const [locations, setLocations] = useState([])
-  // key: "name", "events", "distance", null
-  // direction: "asc", "desc", null
-  const [sortingState, setSortingState] = useState({ key: null, direction: null })
+	const [locations, setLocations] = useState([])
+	// key: "name", "events", "distance", null
+	// direction: "asc", "desc", null
+	const [sortingState, setSortingState] = useState({ key: null, direction: null })
+	// searched text
+	const [searchTerm, setSearchTerm] = useState('')
+	// within ? km
+	const [maxDistance, setmaxDistance] = useState('')
 
-  useEffect(() => {
-    async function load() {
-      const res = await fetch('http://localhost:3000/api/venues')
-      const data = await res.json()
+	useEffect(() => {
+		async function load() {
+			const data = await getVenues()
 
-      const appendDistances = data.map((loc) => {
-        const a =
-          Math.sin(degToRad(loc.latitude - user_latitude) / 2) ** 2 +
-          Math.cos(degToRad(user_latitude)) * Math.cos(degToRad(loc.latitude)) * Math.sin(degToRad(loc.longitude - user_longitude) / 2) ** 2
+			const appendDistances = data.map((loc) => {
+				const a =
+					Math.sin(degToRad(loc.latitude - user_latitude) / 2) ** 2 +
+					Math.cos(degToRad(user_latitude)) *
+						Math.cos(degToRad(loc.latitude)) *
+						Math.sin(degToRad(loc.longitude - user_longitude) / 2) ** 2
 
-        const distance = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+				const distance = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 
-        return {
-          ...loc,
-          distance,  // add distance field
-          favorite: false,  // add favorite field, default to false
-        }
-      })
+				return {
+					...loc,
+					distance, // add distance field
+					favorite: false, // add favorite field, default to false
+				}
+			})
 
-      setLocations(appendDistances)   // array of venues
-    }
+			setLocations(appendDistances) // array of venues
+		}
 
-    load()
-  }, [])
+		load()
+	}, [])
 
-  const toggleFavorite = (venueId) => {
-    setLocations((prevLocation) =>
-      prevLocation.map((loc) =>
-        loc.venueId === venueId ? { ...loc, favorite: !loc.favorite } : loc
-      )
-    )
-  }
+	const toggleFavorite = (venueId) => {
+		setLocations((prevLocation) =>
+			prevLocation.map((loc) =>
+				loc.venueId === venueId ? { ...loc, favorite: !loc.favorite } : loc
+			)
+		)
+	}
 
-  const handleSort = (key) => {
-    setSortingState((prevSortingState) => {
-      // Sort another column when another column is sorted
-      if (prevSortingState.key !== key) {
-        return { key, direction: 'asc' }
-      }
-      // Ascending -> Descending -> None
-      if (prevSortingState.direction === 'asc') return { key, direction: 'desc' }
-      if (prevSortingState.direction === 'desc') return { key: null, direction: null }
-      return { key, direction: 'asc' }
-    })
-  }
+	const handleSort = (key) => {
+		setSortingState((prevSortingState) => {
+			// Sort another column when another column is sorted
+			if (prevSortingState.key !== key) {
+				return { key, direction: 'asc' }
+			}
+			// Ascending -> Descending -> None
+			if (prevSortingState.direction === 'asc') return { key, direction: 'desc' }
+			if (prevSortingState.direction === 'desc') return { key: null, direction: null }
+			return { key, direction: 'asc' }
+		})
+	}
 
-  const sortedLocations = useMemo(() => {
-    // If not sorted
-    if (!sortingState.key || !sortingState.direction) {
-      return locations
-    }
+	const sortedLocations = useMemo(() => {
+		let arr = [...locations]
+		
+		// Search location
+		const st1 = searchTerm.trim().toLowerCase()
+		if (st1) {
+			arr = arr.filter((loc) =>
+				loc.name.toLowerCase().includes(st1)
+			)
+		}
 
-    const arr = [...locations]
+		// Search distance
+		const st2 = maxDistance.trim()
+		if (st2 !== '') {
+			const maxKm = Number(st2)
+			if (!Number.isNaN(maxKm) && maxKm >= 0) {
+				arr = arr.filter((loc) => loc.distance <= maxKm)
+			}
+		}
 
-    arr.sort((a, b) => {
-      if (sortingState.key === 'name') {
-        const aName = a.name.toLowerCase()
-        const bName = b.name.toLowerCase()
-        const cmp = aName.localeCompare(bName)
-        return sortingState.direction === 'asc' ? cmp : -cmp
-      }
+		// If not sorted
+		if (!sortingState.key || !sortingState.direction) {
+			return arr
+		}
 
-      let aVal
-      let bVal
-      if (sortingState.key === 'events') {
-        aVal = a.events.length
-        bVal = b.events.length
-      } else if (sortingState.key === 'distance') {
-        aVal = a.distance
-        bVal = b.distance
-      } else {
-        return 0
-      }
+		arr.sort((a, b) => {
+			if (sortingState.key === 'name') {
+				const aName = a.name.toLowerCase()
+				const bName = b.name.toLowerCase()
+				const cmp = aName.localeCompare(bName)
+				return sortingState.direction === 'asc' ? cmp : -cmp
+			}
 
-      if (aVal < bVal) return sortingState.direction === 'asc' ? -1 : 1
-      if (aVal > bVal) return sortingState.direction === 'asc' ? 1 : -1
-      return 0
-    })
+			let aVal
+			let bVal
+			if (sortingState.key === 'events') {
+				aVal = a.events.length
+				bVal = b.events.length
+			} else if (sortingState.key === 'distance') {
+				aVal = a.distance
+				bVal = b.distance
+			} else {
+				return 0
+			}
 
-    return arr
-  }, [locations, sortingState])
+			if (aVal < bVal) return sortingState.direction === 'asc' ? -1 : 1
+			if (aVal > bVal) return sortingState.direction === 'asc' ? 1 : -1
+			return 0
+		})
 
-  const sortLabel = (key) => {
-    if (sortingState.key !== key || !sortingState.direction) return ''
-    if (sortingState.direction === 'asc') return ' ▲'
-    if (sortingState.direction === 'desc') return ' ▼'
-  }
+		return arr
+	}, [locations, sortingState, searchTerm, maxDistance])
 
-  return (
-    <div className="p-4">
-      <h1 className="mb-4 text-2xl font-bold">
-        Locations
-      </h1>
+	const sortLabel = (key) => {
+		if (sortingState.key !== key || !sortingState.direction) return ''
+		if (sortingState.direction === 'asc') return ' ▲'
+		if (sortingState.direction === 'desc') return ' ▼'
+	}
 
-      <div className="overflow-x-auto rounded border">
-        <table className="min-w-full border-collapse text-sm">
-          <thead className="bg-muted">
-            <tr>
-              <th className="border-b px-3 py-2 text-left font-medium">
-                #
-              </th>
-              <th className="border-b px-3 py-2 text-left font-medium cursor-pointer select-none" onClick={() => handleSort('name')}>
-                Name of Location{sortLabel('name')}
-              </th>
-              <th className="border-b px-3 py-2 text-left font-medium cursor-pointer select-none" onClick={() => handleSort('events')}>
-                No. of Events{sortLabel('events')}
-              </th>
-              <th className="border-b px-3 py-2 text-left font-medium cursor-pointer select-none" onClick={() => handleSort('distance')}>
-                Distance{sortLabel('distance')}
-              </th>
-              <th className="border-b px-3 py-2 text-center font-medium">
-                Add to Favorite
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedLocations.map((row, i) => (
-              <tr key={row.venueId} className="odd:bg-background even:bg-muted/40">
-                <td className="border-b px-3 py-2">{i + 1}</td>
-                <td className="border-b px-3 py-2">{row.name}</td>
-                <td className="border-b px-3 py-2">{row.events.length}</td>
-                <td className="border-b px-3 py-2">{row.distance.toFixed(2)} km</td>
-                <td className="border-b px-3 py-2 text-center">
-                  <input
-                    type="checkbox"
-                    checked={row.favorite}
-                    onChange={() => toggleFavorite(row.venueId)}
-                    className="h-5 w-5 cursor-pointer"
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+	return (
+		<div className="p-4">
+			<h1 className="mb-4 text-2xl font-bold">
+				Locations
+			</h1>
 
-      <div>
-        <h2 className="mb-4 text-xl font-bold">Map View</h2>
-        {/* Pass sortedLocations to mapComponent */}
-        <MapComponent venues={sortedLocations} />
-      </div>
-      
-    </div>
-  )
+			<div className="mb-4">
+				<input
+					type="text"
+					placeholder="Search Location"
+					value={searchTerm}
+					onChange={(e) => setSearchTerm(e.target.value)}
+					className="w-full max-w-sm rounded border px-3 py-2 text-sm"
+				/>
+				<input
+					type="text"
+					inputMode="numeric"
+					min="0"
+					placeholder="Within (km)"
+					value={maxDistance}
+					onChange={(e) => {
+						const val = e.target.value
+						if (/^[0-9]*$/.test(val)) {
+							setmaxDistance(val)
+						}
+					}}
+					className="w-full max-w-xs rounded border px-3 py-2 text-sm"
+				/>
+			</div>
+
+			<div className="overflow-x-auto rounded border">
+				<table className="min-w-full border-collapse text-sm">
+					<thead className="bg-muted">
+						<tr>
+							<th className="border-b px-3 py-2 text-left font-medium">
+								#
+							</th>
+							<th
+								className="border-b px-3 py-2 text-left font-medium cursor-pointer select-none"
+								onClick={() => handleSort('name')}
+							>
+								Name of Location{sortLabel('name')}
+							</th>
+							<th
+								className="border-b px-3 py-2 text-left font-medium cursor-pointer select-none"
+								onClick={() => handleSort('events')}
+							>
+								No. of Events{sortLabel('events')}
+							</th>
+							<th
+								className="border-b px-3 py-2 text-left font-medium cursor-pointer select-none"
+								onClick={() => handleSort('distance')}
+							>
+								Distance{sortLabel('distance')}
+							</th>
+							<th className="border-b px-3 py-2 text-center font-medium">
+								Add to Favorite
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						{sortedLocations.map((row, i) => (
+							<tr key={row.venueId} className="odd:bg-background even:bg-muted/40">
+								<td className="border-b px-3 py-2">{i + 1}</td>
+								<td className="border-b px-3 py-2">{row.name}</td>
+								<td className="border-b px-3 py-2">{row.events.length}</td>
+								<td className="border-b px-3 py-2">
+									{row.distance.toFixed(2)} km
+								</td>
+								<td className="border-b px-3 py-2 text-center">
+									<input
+										type="checkbox"
+										checked={row.favorite}
+										onChange={() => toggleFavorite(row.venueId)}
+										className="h-5 w-5 cursor-pointer"
+									/>
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+
+			<div>
+				<h2 className="mb-4 text-xl font-bold">Map View</h2>
+				{/* Pass sortedLocations to mapComponent */}
+				<MapComponent venues={sortedLocations} />
+      		</div>
+		</div>
+	)
 }
 
 export default HomePage
