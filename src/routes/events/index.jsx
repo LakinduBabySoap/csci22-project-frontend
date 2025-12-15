@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
+import { Pencil, Trash2, ArrowUpDown, AlertCircleIcon, Plus } from "lucide-react";
 import {
     flexRender,
     getCoreRowModel,
@@ -20,11 +21,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Pencil, Trash2, ArrowUpDown, AlertCircleIcon, Plus } from "lucide-react";
 import { getAllEvents, deleteEvent, updateEvent, createEvent } from "@/services/events";
 import { getAllVenues } from "@/services/venues";
+// ✅ Import React Select
+import ReactSelect from "react-select";
+
 export const Route = createFileRoute("/events/")({
     component: EventsPage,
 });
@@ -41,15 +43,20 @@ function EventsPage() {
     const [globalFilter, setGlobalFilter] = useState("");
     const [lastUpdated, setLastUpdated] = useState(null);
     const [venues, setVenues] = useState([]);
+    
     const [formData, setFormData] = useState({
         title: "",
         venue: "",
-        date: "",
-        time: "",
+        dateTime: "",
         description: "",
         presentor: "",
         price: "",
     });
+    const venueOptions = venues.map((venue) => ({
+    value: venue._id,
+    label: venue.name,
+}));
+
 
     const showError = (title, error) => {
         setError({ title, description: error.response?.data?.message || "An unexpected error occurred" });
@@ -89,187 +96,205 @@ function EventsPage() {
         }
     };
 
-    const handleEditClick = (event) => {
-            let date = "";
-        let time = "";
-        if (event.dateTime) {
-            const dateObj = new Date(event.dateTime);
-            if (!isNaN(dateObj.getTime())) {
-                date = dateObj.toISOString().split('T')[0];
-                time = dateObj.toTimeString().slice(0, 5);
-            }
-        }
-        setEditingEvent(event);
-        setFormData({
-            title: event.title || "",
-            venue: typeof event.venue === 'string' ? event.venue : event.venue?._id || "",
-            date: date,
-            time: time,
-            description: event.description || "",
-            presentor: event.presentor || "",
-            price: event.price || "",
-        });
-        setIsEditDialogOpen(true);
-    };
+const handleEditClick = (event) => {
+    setEditingEvent(event);
+    setFormData({
+        title: event.title || "",
+        venue: typeof event.venue === 'string' ? event.venue : event.venue?._id || "",
+        dateTime: event.dateTime || "",  
+        description: event.description || "",
+        presentor: event.presentor || "",
+        price: event.price || "",
+    });
+    setIsEditDialogOpen(true);
+};
 
-    const handleCreateClick = () => {
+const handleCreateClick = () => {
+    setEditingEvent(null);
+    setFormData({
+        title: "",
+        venue: "",
+        dateTime: "",  
+        description: "",
+        presentor: "",
+        price: "",
+    });
+    setIsEditDialogOpen(true);
+};
+const handleSave = async () => {
+    if (!formData.title || !formData.venue || !formData.dateTime) {
+        showError("Validation Error", { message: "Title, Venue, and Date & Time are required" });
+        return;
+    }
+    try {
+        const payload = {
+            title: formData.title,
+            venue: formData.venue,
+            dateTime: formData.dateTime,  
+            description: formData.description || "",
+            presentor: formData.presentor || "",
+            price: formData.price || "",
+        };
+        if (editingEvent) {
+            await updateEvent(editingEvent._id, payload);
+        } else {
+            await createEvent(payload);
+        }
+        await fetchEvents();
+        setIsEditDialogOpen(false);
         setEditingEvent(null);
         setFormData({
             title: "",
             venue: "",
-            date: "",
-            time: "",
+            dateTime: "",  
             description: "",
             presentor: "",
             price: "",
         });
-        setIsEditDialogOpen(true);
-    };
+    } catch (error) {
+        showError("Failed to save event", error);
+    }
+};
 
-    const handleSave = async () => {
-         if (!formData.title || !formData.venue || !formData.date) {
-            showError("Validation Error", { message: "Title, Venue, and Date are required" });
-            return;
-        }
-
-
-        try {
-                     let dateTime = formData.date;
-            if (formData.time) {
-                dateTime = `${formData.date}T${formData.time}:00`;
-            }
-            const payload = {
-                title: formData.title,
-                venue: formData.venue, // Should be MongoDB ObjectId
-                dateTime: dateTime,
-                description: formData.description || "",
-                presentor: formData.presentor || "", // Match backend typo
-                price: formData.price || "",
-            };
-            if (editingEvent) {
-                const updatedEvent = await updateEvent(editingEvent._id, payload);
-                setEvents(events.map((e) => (e._id === updatedEvent._id ? updatedEvent : e)));
-            } else {
-                const newEvent = await createEvent(payload);
-                setEvents([newEvent, ...events]);
-            }
-            setIsEditDialogOpen(false);
-            setEditingEvent(null);
-            setFormData({
-                title: "",
-                venue: "",
-                date: "",
-                time: "",
-                description: "",
-                presentor: "",
-                price: "",
-            });
-        } catch (error) {
-            showError("Failed to save event", error);
-        }
-    };
-
-    const handleCloseDialog = () => {
+const handleCloseDialog = () => {
     setIsEditDialogOpen(false);
     setEditingEvent(null);
     setFormData({
         title: "",
         venue: "",
-        date: "",
-        time: "",
+        dateTime: "",  
         description: "",
         presentor: "",
         price: "",
     });
 };
-
-    const columns = [
-        {
-            accessorKey: "title",
-            header: ({ column }) => {
-                return (
-                    <div className="flex items-center">
-                        Event Title
-                        <Button
-                            variant="ghost"
-                            className="pl-0"
-                            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                        >
-                            <ArrowUpDown />
-                        </Button>
-                    </div>
-                );
-            },
-            cell: ({ row }) => <div className="max-w-xs truncate">{row.getValue("title")}</div>,
+const columns = [
+    {
+        accessorKey: "title",
+        header: ({ column }) => {
+            return (
+                <div className="flex items-center">
+                    Event Title
+                    <Button
+                        variant="ghost"
+                        className="pl-0"
+                        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    >
+                        <ArrowUpDown />
+                    </Button>
+                </div>
+            );
         },
-        {
-            accessorKey: "description",
-            header: "Description",
-            cell: ({ row }) => <div className="max-w-xs truncate">{row.getValue("description")}</div>,
+        cell: ({ row }) => (
+            <div className="max-w-[250px] whitespace-normal break-words">
+                {row.getValue("title")}
+            </div>
+        ),
+    },
+    {
+        accessorKey: "description",
+        header: "Description",
+        cell: ({ row }) => (
+            <div className="max-w-[300px] whitespace-normal break-words text-sm">
+                {row.getValue("description")}
+            </div>
+        ),
+    },
+    {
+        accessorKey: "venue",
+        header: "Venue",
+        cell: ({ row }) => {
+            const venue = row.getValue("venue");
+            const venueName = typeof venue === 'string' ? venue : venue?.name || "N/A";
+            return (
+                <div className="max-w-[180px] whitespace-normal break-words">
+                    {venueName}
+                </div>
+            );
         },
-        {
-            accessorKey: "venue",
-            header: "Venue",
-            cell: ({ row }) => {
-                const venue = row.getValue("venue");
-                const venueName = typeof venue === 'string' ? venue : venue?.name || "N/A";
-                return <div className="max-w-xs truncate">{venueName}</div>;
-            },
+    },
+    {
+        accessorKey: "price",
+        header: "Price",
+        cell: ({ row }) => (
+            <div className="max-w-[80px] whitespace-normal break-words text-sm">
+                {row.getValue("price") || "Free"}
+            </div>
+        ),
+    },
+    {
+        accessorKey: "presentor",
+        header: "Presenters",
+        cell: ({ row }) => (
+            <div className="max-w-[150px] whitespace-normal break-words text-sm">
+                {row.getValue("presentor") || "N/A"}
+            </div>
+        ),
+    },
+{
+    accessorKey: "dateTime",
+    header: ({ column }) => {
+        return (
+            <div className="flex items-center">
+                Date & Time
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+                    <ArrowUpDown />
+                </Button>
+            </div>
+        );
+    },
+    cell: ({ row }) => {
+        const dateTime = row.getValue("dateTime");
+        if (!dateTime) return "N/A";
+        const date = new Date(dateTime);
+        
+        if (isNaN(date.getTime())) {
+            // For invalid/raw date strings, wrap normally (no truncation)
+            return (
+                <div className="max-w-[120px] text-xs whitespace-normal break-words">
+                    {dateTime}
+                </div>
+            );
+        }
+        
+        // For valid dates, format compactly on two lines
+        return (
+            <div className="max-w-[120px] text-xs whitespace-nowrap">
+                <span className="block">{date.toLocaleDateString()}</span>
+                <span className="block text-muted-foreground">
+                    {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+            </div>
+        );
+    },
+},
+    {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => {
+            const event = row.original;
+            return (
+                <div className="flex gap-2 whitespace-nowrap">
+                    <Button size="sm" onClick={() => handleEditClick(event)}>
+                        <Pencil className="h-4 w-4" />
+                        <span className="ml-1">Update</span>
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => {
+                            setDeletingEvent(event);
+                            setIsDeleteDialogOpen(true);
+                        }}
+                    >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="ml-1">Delete</span>
+                    </Button>
+                </div>
+            );
         },
-        {
-            accessorKey: "price",
-            header: "Price",
-            cell: ({ row }) => <div>{row.getValue("price") || "Free"}</div>,
-        },
-        {
-            accessorKey: "presentor",
-            header: "Presenters",
-            cell: ({ row }) => <div className="max-w-xs truncate">{row.getValue("presentor") || "N/A"}</div>,
-        },
-        {
-            accessorKey: "dateTime",
-            header: ({ column }) => {
-                return (
-                    <div className="flex items-center">
-                        Date & Time
-                        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-                            <ArrowUpDown />
-                        </Button>
-                    </div>
-                );
-            },
-            cell: ({ row }) => {
-                const dateTime = row.getValue("dateTime");
-                if (!dateTime) return "N/A";
-                const date = new Date(dateTime);
-                return date.toLocaleString();
-            },
-        },
-        {
-            id: "actions",
-            header: "Actions",
-            cell: ({ row }) => {
-                const event = row.original;
-                return (
-                    <div className="flex gap-2">
-                        <Button size="sm" onClick={() => handleEditClick(event)}>
-                            <Pencil /> Update
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => {
-                                setDeletingEvent(event);
-                                setIsDeleteDialogOpen(true);
-                            }}
-                        >
-                            <Trash2 /> Delete
-                        </Button>
-                    </div>
-                );
-            },
-        },
-    ];
+    },
+];
 
     const table = useReactTable({
         data: events,
@@ -295,9 +320,7 @@ function EventsPage() {
                 <p className="text-sm text-muted-foreground">Manage cultural events and programmes.</p>
             </header>
 
-            {/* Events Table */}
             <div>
-                {/* Top Bar: Create Button, Search, Last Updated, Pagination */}
                 <div className="flex items-center justify-between py-4 gap-4 flex-wrap">
                     <Button onClick={handleCreateClick}>
                         <Plus /> New Event
@@ -336,19 +359,16 @@ function EventsPage() {
                     </div>
                 </div>
 
-                {/* Table */}
                 <div className="overflow-hidden rounded-md border">
                     <Table>
                         <TableHeader>
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id}>
-                                    {headerGroup.headers.map((header) => {
-                                        return (
-                                            <TableHead key={header.id}>
-                                                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                                            </TableHead>
-                                        );
-                                    })}
+                                    {headerGroup.headers.map((header) => (
+                                        <TableHead key={header.id}>
+                                            {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                                        </TableHead>
+                                    ))}
                                 </TableRow>
                             ))}
                         </TableHeader>
@@ -373,6 +393,28 @@ function EventsPage() {
                 </div>
             </div>
 
+                        <div className="flex items-center justify-between py-4">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => table.previousPage()}
+                    disabled={!table.getCanPreviousPage()}
+                >
+                    Previous
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                    Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+                </span>
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => table.nextPage()} 
+                    disabled={!table.getCanNextPage()}
+                >
+                    Next
+                </Button>
+            </div>
+
             {/* Add/Edit Event Dialog */}
             <AlertDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                 <AlertDialogContent className="w-full max-w-2xl">
@@ -385,7 +427,7 @@ function EventsPage() {
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="title" className="text-right">
-                                Title
+                                Title <span className="text-destructive">*</span>
                             </Label>
                             <Input
                                 id="title"
@@ -394,50 +436,63 @@ function EventsPage() {
                                 className="col-span-3"
                             />
                         </div>
+
 <div className="grid grid-cols-4 items-center gap-4">
     <Label htmlFor="venue" className="text-right">
         Venue <span className="text-destructive">*</span>
     </Label>
-    <Select 
-        value={formData.venue} 
-        onValueChange={(value) => setFormData({ ...formData, venue: value })}
-    >
-        <SelectTrigger className="col-span-3">
-            <SelectValue placeholder="Select a venue" />
-        </SelectTrigger>
-        <SelectContent>
-            {venues.map((venue) => (
-                <SelectItem key={venue._id} value={venue._id}>
-                    {venue.name}
-                </SelectItem>
-            ))}
-        </SelectContent>
-    </Select>
+    <div className="col-span-3">
+        <ReactSelect
+            id="venue"
+            options={venueOptions}
+            value={venueOptions.find(option => option.value === formData.venue) || null}
+            onChange={(selectedOption) => {
+                setFormData({ ...formData, venue: selectedOption?.value || "" });
+            }}
+            placeholder="Start typing to search venues..."
+            isClearable
+            isSearchable
+            className="text-sm"
+            classNamePrefix="react-select"
+            menuIsOpen={undefined}  // Let React Select control when to open
+            filterOption={(option, inputValue) => {
+                // Only show options when user types at least 2 characters
+                if (!inputValue || inputValue.length < 2) return false;
+                return option.label.toLowerCase().includes(inputValue.toLowerCase());
+            }}
+            noOptionsMessage={({ inputValue }) => {
+                if (!inputValue || inputValue.length < 2) {
+                    return "Type at least 2 characters to search...";
+                }
+                return "No venues found";
+            }}
+            maxMenuHeight={300}
+            menuPosition="fixed"
+            menuPortalTarget={document.body}
+            styles={{
+                menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                menu: (base) => ({ 
+                    ...base, 
+                    maxHeight: '300px',
+                }),
+            }}
+        />
+    </div>
 </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="date" className="text-right">
-                                Date
-                            </Label>
-                            <Input
-                                id="date"
-                                type="date"
-                                value={formData.date}
-                                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                className="col-span-3"
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="time" className="text-right">
-                                Time
-                            </Label>
-                            <Input
-                                id="time"
-                                type="time"
-                                value={formData.time}
-                                onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                                className="col-span-3"
-                            />
-                        </div>
+
+<div className="grid grid-cols-4 items-start gap-4">
+    <Label htmlFor="dateTime" className="text-right pt-2">
+        Date & Time <span className="text-destructive">*</span>
+    </Label>
+    <textarea
+        id="dateTime"
+        value={formData.dateTime}
+        onChange={(e) => setFormData({ ...formData, dateTime: e.target.value })}
+        placeholder="e.g. 18-19/12/2025 (Thu-Fri) 20:30 or 2025-12-15T23:54:00"
+        className="col-span-3 min-h-[80px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+    />
+</div>
+
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="price" className="text-right">
                                 Price
@@ -450,6 +505,7 @@ function EventsPage() {
                                 className="col-span-3"
                             />
                         </div>
+
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="presenter" className="text-right">
                                 Presenters
@@ -461,6 +517,7 @@ function EventsPage() {
                                 className="col-span-3"
                             />
                         </div>
+
                         <div className="grid grid-cols-4 items-start gap-4">
                             <Label htmlFor="description" className="text-right pt-2">
                                 Description
@@ -473,40 +530,40 @@ function EventsPage() {
                             />
                         </div>
                     </div>
-<AlertDialogFooter>
-    <Button variant="outline" onClick={handleCloseDialog}>
-        Cancel
-    </Button>
-    <Button onClick={handleSave}>Save</Button>
-</AlertDialogFooter>
+                    <AlertDialogFooter>
+                        <Button variant="outline" onClick={handleCloseDialog}>
+                            Cancel
+                        </Button>
+                        <Button onClick={handleSave}>Save</Button>
+                    </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
 
             {/* Delete Event Dialog */}
-<AlertDialog
-    open={isDeleteDialogOpen}
-    onOpenChange={(value) => {
-        if (!value) {
-            setDeletingEvent(null);
-        }
-        setIsDeleteDialogOpen(value);
-    }}
->
-    <AlertDialogContent>
-        <AlertDialogHeader>
-            <AlertDialogTitle>Confirm delete</AlertDialogTitle>
-            <AlertDialogDescription>Deleting an event is permanent. This cannot be undone.</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-                Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-                Delete
-            </Button>
-        </AlertDialogFooter>
-    </AlertDialogContent>
-</AlertDialog>
+            <AlertDialog
+                open={isDeleteDialogOpen}
+                onOpenChange={(value) => {
+                    if (!value) {
+                        setDeletingEvent(null);
+                    }
+                    setIsDeleteDialogOpen(value);
+                }}
+            >
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm delete</AlertDialogTitle>
+                        <AlertDialogDescription>Deleting an event is permanent. This cannot be undone.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button variant="destructive" onClick={handleDelete}>
+                            Delete
+                        </Button>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             {/* Error Message */}
             {error && (

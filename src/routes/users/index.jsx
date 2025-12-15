@@ -228,43 +228,49 @@ function UsersPage() {
             {/* User Table */}
             <div>
                 {/* Top Bar: New User Button, Search, Last Updated, Pagination */}
-                <div className="flex items-center justify-between py-4 gap-4 flex-wrap">
-                    <Button onClick={handleCreateClick}>
-                        <Plus /> New User
-                    </Button>
+ 			    {/* Top Bar: New User Button, Search, Last Updated, Pagination */}
+<div className="flex items-center justify-between py-4 gap-4">
+    {/* Left: New User + Search */}
+    <div className="flex items-center gap-4">
+        <Button onClick={handleCreateClick}>
+            <Plus /> New User
+        </Button>
+        
+        <Input
+            value={table.getState().globalFilter ?? ""}
+            onChange={(e) => table.setGlobalFilter(String(e.target.value))}
+            placeholder="Search users by username"
+            className="w-64"
+        />
+    </div>
 
-                    <Input
-                        value={table.getState().globalFilter ?? ""}
-                        onChange={(e) => table.setGlobalFilter(String(e.target.value))}
-                        placeholder="Search users by username"
-                        className="max-w-xs"
-                    />
+    {/* Center: Last Updated */}
+    <div className="flex items-center text-sm text-muted-foreground">
+        {lastUpdated && (
+            <span>
+                Last updated on {lastUpdated.toLocaleDateString()} at {lastUpdated.toLocaleTimeString()}
+            </span>
+        )}
+    </div>
 
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        {lastUpdated && (
-                            <span>
-                                Last updated on {lastUpdated.toLocaleDateString()} at {lastUpdated.toLocaleTimeString()}
-                            </span>
-                        )}
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => table.previousPage()}
-                            disabled={!table.getCanPreviousPage()}
-                        >
-                            Previous
-                        </Button>
-                        <span className="text-sm text-muted-foreground">
-                            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-                        </span>
-                        <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-                            Next
-                        </Button>
-                    </div>
-                </div>
+    {/* Right: Pagination */}
+    <div className="flex items-center space-x-2">
+        <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+        >
+            Previous
+        </Button>
+        <span className="text-sm text-muted-foreground">
+            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+        </span>
+        <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+            Next
+        </Button>
+    </div>
+</div>
 
                 {/* Table */}
                 <div className="overflow-hidden rounded-md border">
@@ -301,6 +307,27 @@ function UsersPage() {
                         </TableBody>
                     </Table>
                 </div>
+            </div>
+			            <div className="flex items-center justify-between py-4">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => table.previousPage()}
+                    disabled={!table.getCanPreviousPage()}
+                >
+                    Previous
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                    Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+                </span>
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => table.nextPage()} 
+                    disabled={!table.getCanNextPage()}
+                >
+                    Next
+                </Button>
             </div>
 
             {/* Add/Edit User Dialog */}
@@ -413,5 +440,6 @@ function UsersPage() {
                 </Alert>
             )}
         </div>
+		
     );
 }

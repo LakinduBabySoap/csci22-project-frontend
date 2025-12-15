@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState, useMemo } from 'react'
-import { getAllVenues, addFavoriteVenue, removeFavoriteVenue } from '@/services/venues'
+import { getAllVenues, addFavoriteVenue, removeFavoriteVenue, getFavoriteVenues } from '@/services/venues'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { AlertCircleIcon } from 'lucide-react'
 import MapComponent from '@/components/mapView.jsx'
@@ -17,6 +17,7 @@ const degToRad = (deg) => (deg * Math.PI) / 180
 
 function HomePage() {
   const [locations, setLocations] = useState([])
+  const [favoriteIds, setFavoriteIds] = useState([])
   // key: "name", "events", "distance", null
   // direction: "asc", "desc", null
   const [sortingState, setSortingState] = useState({ key: null, direction: null })
@@ -39,9 +40,22 @@ function HomePage() {
     async function load() {
       try{
       //const res = await fetch('http://localhost:3000/api/venues')
-      const data = await getAllVenues()
+        const [venuesData, favoritesData] = await Promise.all([
+          getAllVenues(),
+          getFavoriteVenues()
+        ])
+      //console.log('All venues (first 3):', venuesData.slice(0, 3).map(v => ({ _id: v._id, name: v.name })));
+      //console.log('Favorites from backend:', favoritesData);
+      
+      // Extract favorite IDs from venue objects
+      const favIds = favoritesData.map((fav) => {
+      //console.log(' Favorite venue _id:', fav._id, 'Type:', typeof fav._id);
+        return fav._id;
+      });
 
-			const appendDistances = data.map((loc) => {
+      //console.log(' Extracted favorite IDs:', favIds);
+      setFavoriteIds(favIds);
+			const appendDistances = venuesData.map((loc) => {
 				const a =
 					Math.sin(degToRad(loc.latitude - user_latitude) / 2) ** 2 +
 					Math.cos(degToRad(user_latitude)) *
@@ -53,9 +67,11 @@ function HomePage() {
         return {
           ...loc,
           distance,  // add distance field
-          favorite: loc.isFavorite || false,  // add favorite field, default to false
+          //favorite: loc.isFavorite || false,  // add favorite field, default to false
         }
       })
+console.log('🔍 First venue from list:', appendDistances[0]?._id, 'Type:', typeof appendDistances[0]?._id);
+      console.log('🔍 Does first favorite match any venue?', appendDistances.some(v => v._id === favIds[0]));
 
       setLocations(appendDistances)   // array of venues
     } catch (err) {
@@ -68,28 +84,24 @@ function HomePage() {
     load()
   }, [])
 
-  const toggleFavorite = async (venueId) => {
-    const venue = locations.find((loc) => loc._id === venueId)
+const toggleFavorite = async (venueId) => {
+    const isFavorited = favoriteIds.includes(venueId)  
+    
     try {
-      if (venue.favorite) {
+      if (isFavorited) {
         // Remove from favorites
         await removeFavoriteVenue(venueId)
+        setFavoriteIds((prev) => prev.filter((id) => id !== venueId))
       } else {
         // Add to favorites
         await addFavoriteVenue(venueId)
+        setFavoriteIds((prev) => [...prev, venueId])
       }
-
-    setLocations((prevLocation) =>
-      prevLocation.map((loc) =>
-        loc._id === venueId ? { ...loc, favorite: !loc.favorite } : loc
-      )
-    )
-  } catch (err) {
+    } catch (err) {
       showError('Failed to update favorite')
       console.error(err)
     }
   }
-
 
 	const handleSort = (key) => {
 		setSortingState((prevSortingState) => {
@@ -237,7 +249,7 @@ function HomePage() {
 								<td className="border-b px-3 py-2 text-center">
 									<input
 										type="checkbox"
-										checked={row.favorite}
+										checked={favoriteIds.includes(row._id)}
 										// onChange={() => toggleFavorite(row.venueId)}
                     onChange={() => toggleFavorite(row._id)}
 										className="h-5 w-5 cursor-pointer"
