@@ -1,8 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState, useMemo } from 'react'
+import { getAllVenues, addFavoriteVenue, removeFavoriteVenue } from '@/services/venues'
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
+import { AlertCircleIcon } from 'lucide-react'
 import MapComponent from '@/components/mapView.jsx'
 import { getVenues } from '@/services/venues'
-
 export const Route = createFileRoute('/')({
 	component: HomePage,
 })
@@ -14,18 +16,30 @@ const user_longitude = 114.20644
 const degToRad = (deg) => (deg * Math.PI) / 180
 
 function HomePage() {
-	const [locations, setLocations] = useState([])
-	// key: "name", "events", "distance", null
-	// direction: "asc", "desc", null
-	const [sortingState, setSortingState] = useState({ key: null, direction: null })
-	// searched text
+  const [locations, setLocations] = useState([])
+  // key: "name", "events", "distance", null
+  // direction: "asc", "desc", null
+  const [sortingState, setSortingState] = useState({ key: null, direction: null })
+  // searched text
 	const [searchTerm, setSearchTerm] = useState('')
 	// within ? km
 	const [maxDistance, setmaxDistance] = useState('')
+  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-	useEffect(() => {
-		async function load() {
-			const data = await getVenues()
+  const showError = (message) => {
+    setError(message)
+    setTimeout(() => setError(null), 5000)
+  }
+    //merge conflict issue
+  // useEffect(() => {
+	// 	async function load() {
+	// 		const data = await getVenues()
+  useEffect(() => {
+    async function load() {
+      try{
+      //const res = await fetch('http://localhost:3000/api/venues')
+      const data = await getAllVenues()
 
 			const appendDistances = data.map((loc) => {
 				const a =
@@ -36,26 +50,46 @@ function HomePage() {
 
 				const distance = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 
-				return {
-					...loc,
-					distance, // add distance field
-					favorite: false, // add favorite field, default to false
-				}
-			})
+        return {
+          ...loc,
+          distance,  // add distance field
+          favorite: loc.isFavorite || false,  // add favorite field, default to false
+        }
+      })
 
-			setLocations(appendDistances) // array of venues
-		}
+      setLocations(appendDistances)   // array of venues
+    } catch (err) {
+        showError('Failed to load venues')
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [])
 
-		load()
-	}, [])
+  const toggleFavorite = async (venueId) => {
+    const venue = locations.find((loc) => loc._id === venueId)
+    try {
+      if (venue.favorite) {
+        // Remove from favorites
+        await removeFavoriteVenue(venueId)
+      } else {
+        // Add to favorites
+        await addFavoriteVenue(venueId)
+      }
 
-	const toggleFavorite = (venueId) => {
-		setLocations((prevLocation) =>
-			prevLocation.map((loc) =>
-				loc.venueId === venueId ? { ...loc, favorite: !loc.favorite } : loc
-			)
-		)
-	}
+    setLocations((prevLocation) =>
+      prevLocation.map((loc) =>
+        loc._id === venueId ? { ...loc, favorite: !loc.favorite } : loc
+      )
+    )
+  } catch (err) {
+      showError('Failed to update favorite')
+      console.error(err)
+    }
+  }
+
 
 	const handleSort = (key) => {
 		setSortingState((prevSortingState) => {
@@ -123,11 +157,12 @@ function HomePage() {
 		return arr
 	}, [locations, sortingState, searchTerm, maxDistance])
 
-	const sortLabel = (key) => {
-		if (sortingState.key !== key || !sortingState.direction) return ''
-		if (sortingState.direction === 'asc') return ' ▲'
-		if (sortingState.direction === 'desc') return ' ▼'
-	}
+  const sortLabel = (key) => {
+    if (sortingState.key !== key || !sortingState.direction) return ''
+    if (sortingState.direction === 'asc') return ' ▲'
+    if (sortingState.direction === 'desc') return ' ▼'
+  }
+  if (loading) return <div className = "p-8">Loading...</div>
 
 	return (
 		<div className="p-4">
@@ -191,7 +226,8 @@ function HomePage() {
 					</thead>
 					<tbody>
 						{sortedLocations.map((row, i) => (
-							<tr key={row.venueId} className="odd:bg-background even:bg-muted/40">
+							// <tr key={row.venueId} className="odd:bg-background even:bg-muted/40">
+              <tr key={row._id} className="odd:bg-background even:bg-muted/40">
 								<td className="border-b px-3 py-2">{i + 1}</td>
 								<td className="border-b px-3 py-2">{row.name}</td>
 								<td className="border-b px-3 py-2">{row.events.length}</td>
@@ -202,7 +238,8 @@ function HomePage() {
 									<input
 										type="checkbox"
 										checked={row.favorite}
-										onChange={() => toggleFavorite(row.venueId)}
+										// onChange={() => toggleFavorite(row.venueId)}
+                    onChange={() => toggleFavorite(row._id)}
 										className="h-5 w-5 cursor-pointer"
 									/>
 								</td>
