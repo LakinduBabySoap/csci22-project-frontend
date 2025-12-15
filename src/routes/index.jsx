@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState, useMemo } from 'react'
+import MapComponent from '@/components/mapView.jsx'
 
 export const Route = createFileRoute('/')({
     component: HomePage,
@@ -152,6 +153,13 @@ function HomePage() {
           </tbody>
         </table>
       </div>
+
+      <div>
+        <h2 className="mb-4 text-xl font-bold">Map View</h2>
+        {/* Pass sortedLocations to mapComponent */}
+        <MapComponent venues={sortedLocations} />
+      </div>
+      
     </div>
   )
 }
