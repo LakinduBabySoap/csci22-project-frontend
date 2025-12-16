@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
+import { getVenueComments, addVenueComment } from "@/services/comments";
 import { getAllVenues, addFavoriteVenue, removeFavoriteVenue, getFavoriteVenues } from "@/services/venues";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircleIcon } from "lucide-react";
@@ -57,6 +58,7 @@ function HomePage() {
 	const [selectedVenue, setSelectedVenue] = useState(null)
 	const [comments, setComments] = useState([]);
 	const [newComment, setNewComment] = useState("")
+	const [loadingComments, setLoadingComments] = useState(false);
 
 	const showError = (message) => {
 		setError(message);
@@ -113,20 +115,47 @@ function HomePage() {
 		}
 		load();
 	}, []);
+
+	useEffect(() => {
+        // 1. Check if a venue is selected and has a valid ID
+        if (selectedVenue?._id) {
+            setLoadingComments(true);
+            
+            // 2. Call the backend service
+            getVenueComments(selectedVenue._id)
+                .then((data) => {
+                    setComments(data);
+                })
+                .catch((err) => {
+                    console.error("Failed to load comments", err);
+                    setComments([]); // Clear on error
+                })
+                .finally(() => {
+                    setLoadingComments(false);
+                });
+        } else {
+            // 3. Clear comments if the panel is closed
+            setComments([]);
+        }
+    }, [selectedVenue]);
 	
 	const handleSelectVenue = (venue) => {
         setSelectedVenue(venue);
-        // Reset mock comments when changing venue (In real app, fetch from API here)
-        setComments([
-            { user: "User A", text: "Great place!", date: "2024-01-12" },
-            { user: "User B", text: "Parking is hard to find.", date: "2024-02-05" }
-        ]);
     };
 
-	const handleAddComment = () => {
+	const handleAddComment = async () => {
         if (!newComment.trim()) return;
-        setComments([...comments, { user: "Me", text: newComment, date: new Date().toISOString().split('T')[0] }]);
-        setNewComment("");
+        
+        try {
+            const savedComment = await addVenueComment(selectedVenue._id, newComment);
+            
+            // Add new comment to top of list
+            setComments([savedComment, ...comments]);
+            setNewComment("");
+        } catch (err) {
+            console.error("Failed to post comment", err);
+            alert("Failed to send comment. Please try again.");
+        }
     };
 
 	const handleCloseView = () => {
@@ -290,7 +319,7 @@ function HomePage() {
 					</thead>
 					<tbody>
 						{sortedLocations.map((row, i) => (
-							<tr key={row._Id} className={`border-b cursor-pointer transition-colors
+							<tr key={row._id} className={`border-b cursor-pointer transition-colors
 								${selectedVenue?.venueId === row.venueId ? "bg-blue-50 border-l-4 border-l-blue-500" : "hover:bg-muted/50"}
 							`}
 							onClick={() => handleSelectVenue(row)} // [MODIFIED] Select venue on click
@@ -397,7 +426,7 @@ function HomePage() {
 															{comments.map((c, i) => (
 																<div key={i} className="text-sm">
 																	<div className="flex justify-between items-baseline">
-																		<span className="font-semibold text-xs">{c.user}</span>
+																		<span className="font-semibold text-xs">{c.user?.username || "Unknown User"}</span>
 																		<span className="text-[10px] text-muted-foreground">{c.date}</span>
 																	</div>
 																	<p className="text-muted-foreground mt-0.5">{c.text}</p>

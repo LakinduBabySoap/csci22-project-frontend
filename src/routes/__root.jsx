@@ -54,9 +54,11 @@ function RootComponent() {
 						<div className="flex items-center justify-center gap-6">
 							<ModeToggle />
 						</div>
-						<div className="flex ml-2 h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground">
-							U
-						</div>
+						<Link to="/profile" className="cursor-pointer">
+							<div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-semibold text-muted-foreground hover:bg-muted/80 transition-colors">
+								U
+							</div>
+						</Link>
 					</div>
 					<TanStackRouterDevtools />
 				</header>
