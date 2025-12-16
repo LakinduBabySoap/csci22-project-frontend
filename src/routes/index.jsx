@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import { getAllVenues, addFavoriteVenue, removeFavoriteVenue, getFavoriteVenues } from "@/services/venues";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -21,6 +21,18 @@ import { X, MapPin, Calendar, MessageSquare, Send } from 'lucide-react'
 
 export const Route = createFileRoute("/")({
 	component: HomePage,
+
+	beforeLoad: () => {
+        // Check if the token exists in local storage
+        const token = localStorage.getItem("token");
+        // If no token found, redirect to the login page
+        if (!token) {
+			console.log("yes")
+            throw redirect({
+                to: "login/index.jsx", // Make sure your login route is named '/login'
+            });
+        };
+	},
 });
 
 // Default to be Pi Chiu Building, CUHK
@@ -306,7 +318,7 @@ function HomePage() {
 				<h2 className="mb-4 text-xl font-bold">Map View</h2>
                 {/* [MODIFIED] Pass handlers to map */}
 				<MapComponent 
-                    venues={sortedlocations} // Pass ALL locations so pins remain visible
+                    venues={sortedLocations} // Pass ALL locations so pins remain visible
                     selectedVenue={selectedVenue} // For zooming
                     onMarkerClick={handleSelectVenue} // For selection
                 />
@@ -416,159 +428,6 @@ function HomePage() {
 		</div>
 	);
 }
-
-
-// --- Helper: Smart Parse for Sessions ---
-// ------------------------------------------------------------------
-// HELPER FUNCTIONS
-// ------------------------------------------------------------------
-
-// --- Helper: Smart Parse for Sessions ---
-function parseSessionString(str) {
-    if (!str) return [];
-    
-    // 1. Normalize Separators:
-    // Replace "---", ";", and newlines with commas for unified splitting
-    let normalizedStr = str.replace(/---|;|\n/g, ',');
-
-    // 2. Initial split by comma (ignoring parentheses)
-    const rawSegments = [];
-    let depth = 0;
-    let current = "";
-    for (let i = 0; i < normalizedStr.length; i++) {
-        const char = normalizedStr[i];
-        if (char === '(') depth++;
-        if (char === ')') depth--;
-        
-        // Split at comma only if we are at depth 0 (outside parens)
-        if (char === ',' && depth === 0) {
-            if (current.trim()) rawSegments.push(current.trim());
-            current = "";
-        } else {
-            current += char;
-        };
-    }
-    // Push the last segment
-    if (current.trim()) rawSegments.push(current.trim());
-
-    // 3. Post-processing to merge "orphan" times and "Except" clauses
-    const mergedSessions = [];
-    
-    // Regex for Month Names (Jan...Dec) OR numeric dates (19/12, 1/1)
-    const dateRegex = /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)|(\d{1,2}\/\d{1,2})/i;
-
-    rawSegments.forEach((segment) => {
-        const cleanSeg = segment.trim();
-        const hasDate = dateRegex.test(cleanSeg);
-        const startsWithExcept = /^except/i.test(cleanSeg);
-        
-        // Check if the PREVIOUS session line is currently "open" with an exception clause
-        // (i.e., it contains the word "Except")
-        const prevSessionIndex = mergedSessions.length - 1;
-        const prevHasExcept = prevSessionIndex >= 0 && /except/i.test(mergedSessions[prevSessionIndex]);
-        
-        // Check if current segment looks like a distinct new session (usually has parens like "(Mon)")
-        const hasParens = /\(/.test(cleanSeg);
-
-        if (mergedSessions.length === 0) {
-            mergedSessions.push(cleanSeg);
-        } else if (startsWithExcept) {
-            // Case A: Segment starts with "Except" -> Always merge to previous
-            mergedSessions[prevSessionIndex] += `; ${cleanSeg}`;
-        } else if (hasDate) {
-            // Case B: It has a date. Usually a new session...
-            // UNLESS it is part of an ongoing Exception list (e.g. "8 Dec" after "Except 1 Dec")
-            // and it doesn't look like a full session definition (no parens).
-            if (prevHasExcept && !hasParens) {
-                mergedSessions[prevSessionIndex] += `, ${cleanSeg}`;
-            } else {
-                mergedSessions.push(cleanSeg);
-            }
-        } else {
-            // Case C: No date (e.g. "7:00pm") -> Merge to previous
-            mergedSessions[prevSessionIndex] += `, ${cleanSeg}`;
-        }
-    });
-
-    return mergedSessions;
-}
-
-// --- Helper Component: Expandable Description ---
-function EventDescription({ text }) {
-    const [isExpanded, setIsExpanded] = useState(false);
-    if (!text) return null;
-
-    const showButton = text.length > 100; 
-
-    return (
-        <div className="mb-3">
-            <div className={`text-sm text-gray-700 leading-relaxed ${!isExpanded ? 'line-clamp-3' : ''}`}>
-                {text}
-            </div>
-            {showButton && (
-                <button
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="text-xs text-blue-600 font-medium mt-1 hover:underline focus:outline-none"
-                >
-                    {isExpanded ? "Show less" : "More details"}
-                </button>
-            )}
-        </div>
-    );
-}
-
-// --- Helper Component: Expandable Sessions ---
-function EventSessions({ dateString }) {
-    const [isExpanded, setIsExpanded] = useState(false);
-    
-    if (!dateString) return <div className="text-xs text-muted-foreground">Date TBA</div>;
-    
-    const sessions = parseSessionString(dateString);
-    if (sessions.length === 0) return null;
-
-    const firstSession = sessions[0];
-    const restSessions = sessions.slice(1);
-    const hasMore = restSessions.length > 0;
-
-    return (
-        <div className="space-y-3 pt-2 border-t border-dashed">
-            <span className="text-xs font-semibold text-gray-900 block">Event Sessions:</span>
-            
-            {/* Always show the first session */}
-            <div className="flex flex-col">
-                <div className="font-medium text-gray-800 flex items-start gap-2">
-                    <span className="text-xs mt-0.5">📅</span>
-                    <span>{firstSession}</span>
-                </div>
-            </div>
-
-            {/* Toggle logic for remaining sessions */}
-            {hasMore && (
-                <>
-                    {isExpanded && restSessions.map((session, idx) => (
-                        <div key={idx} className="flex flex-col animate-in fade-in slide-in-from-top-1 duration-200">
-                             <div className="font-medium text-gray-800 flex items-start gap-2">
-                                <span className="text-xs mt-0.5">📅</span>
-                                <span>{session}</span>
-                            </div>
-                        </div>
-                    ))}
-
-                    <button 
-                        onClick={() => setIsExpanded(!isExpanded)}
-                        className="text-xs text-blue-600 font-medium hover:underline flex items-center gap-1 mt-1"
-                    >
-                        {isExpanded ? "Show less" : `View ${restSessions.length} more session(s)`}
-                    </button>
-                </>
-            )}
-        </div>
-    );
-}
-
-// ------------------------------------------------------------------
-// HELPER FUNCTIONS
-// ------------------------------------------------------------------
 
 // --- Helper: Smart Parse for Sessions ---
 // ------------------------------------------------------------------
