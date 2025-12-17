@@ -124,8 +124,9 @@ csci22-project-frontend/
 │   │   ├── auth.js        # Authenication API logic
 │   │   ├── events.js      # Events API logic
 │   │   ├── users.js       # Users API logic
+|   |   ├── comments.js       # Comments API logic
 │   │   └── venues.js      # Venues API logic
-│   ├── hooks/             # Custom React hooks (Authenication)
+│   ├── hooks/             # Custom React hooks (Authenication, Device)
 │   ├── contexts/          # React contexts (e.g., for theme, auth)
 │   ├── App.jsx            # Main app component
 │   ├── main.jsx           # Entry point
@@ -139,3 +140,4 @@ csci22-project-frontend/
 ├── package.json           # Dependencies and scripts
 └── vite.config.js         # Vite configuration
 ```
+
