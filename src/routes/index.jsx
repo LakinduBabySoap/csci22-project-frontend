@@ -327,12 +327,12 @@ function HomePage() {
 					className="w-full sm:max-w-xs rounded border px-3 py-2 text-sm"
 					disabled={!!selectedVenue}
 				>
-					<option value="">All districts</option>
+					<option value="">{t('home.allDistricts') || "All districts"}</option>
 					{districtOptions.map((district) => (
-						<option key={district} value={district}>
-							{district}
-						</option>
-					))}
+        <option key={district} value={district}>
+            {translateLocation(district)}
+        </option>
+    ))}
 				</select>
 			</div>
 			
