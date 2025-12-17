@@ -7,6 +7,7 @@ import { AlertCircleIcon } from "lucide-react";
 import MapComponent from "@/components/mapView.jsx";
 import { getVenues } from "@/services/venues";
 import{useMediaQuery} from "@/hooks/use-media-query";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Sheet,
   SheetContent,
@@ -45,7 +46,7 @@ const user_longitude = 114.20644;
 const degToRad = (deg) => (deg * Math.PI) / 180;
 
 function HomePage() {
-
+	const { t, resolve, translateLocation, language } = useLanguage();
 	const isDesktop = useMediaQuery("(min-width: 768px)");
 	const mapSectionRef = useRef(null);
 
@@ -218,7 +219,12 @@ function HomePage() {
 		// Search location
 		const st1 = searchTerm.trim().toLowerCase();
 		if (st1) {
-			arr = arr.filter((loc) => loc.name.toLowerCase().includes(st1));
+            // Updated to search against the resolved name or both
+			arr = arr.filter((loc) => {
+                const nameEn = loc.name.toLowerCase();
+                const nameCh = (loc.nameChinese || "").toLowerCase();
+                return nameEn.includes(st1) || nameCh.includes(st1);
+            });
 		}
 
 		// Search distance
@@ -237,8 +243,8 @@ function HomePage() {
 
 		arr.sort((a, b) => {
 			if (sortingState.key === "name") {
-				const aName = a.name.toLowerCase();
-				const bName = b.name.toLowerCase();
+				const aName = resolve(a, 'name').toLowerCase();
+				const bName = resolve(b, 'name').toLowerCase();
 				const cmp = aName.localeCompare(bName);
 				return sortingState.direction === "asc" ? cmp : -cmp;
 			}
@@ -261,7 +267,7 @@ function HomePage() {
 		});
 
 		return arr;
-	}, [locations, sortingState, searchTerm, maxDistance]);
+	}, [locations, sortingState, searchTerm, maxDistance, language]);
 
 	const sortLabel = (key) => {
 		if (sortingState.key !== key || !sortingState.direction) return "";
@@ -273,13 +279,13 @@ function HomePage() {
 	return (
 		<div className={`min-h-screen bg-background p-4 transition-all duration-300 ${selectedVenue ? "pb-[60vh] md:pb-24" : "pb-24"}`}>
 			<div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-bold">Locations</h1>
+                <h1 className="text-2xl font-bold">{t('home.title')}</h1>
             </div>
 
 			<div className="mb-4 flex flex-col gap-3 sm:flex-row">
 				<input
 					type="text"
-					placeholder="Search Location"
+					placeholder={t('home.searchPlaceholder')}
 					value={searchTerm}
 					onChange={(e) => setSearchTerm(e.target.value)}
 					className="w-full sm:max-w-sm rounded border px-3 py-2 text-sm"
@@ -289,7 +295,7 @@ function HomePage() {
 					type="text"
 					inputMode="numeric"
 					min="0"
-					placeholder="Within (km)"
+					placeholder={t('home.distancePlaceholder')}
 					value={maxDistance}
 					onChange={(e) => {
 						const val = e.target.value;
@@ -314,10 +320,10 @@ function HomePage() {
         >
             <div className="flex justify-between items-start mb-2">
                 <div>
-                    <h3 className="font-bold text-base">{row.name}</h3>
+                    <h3 className="font-bold text-base">{resolve(row, 'name')}</h3>
                     <div className="flex items-center text-muted-foreground text-xs mt-1">
                         <MapPin className="h-3 w-3 mr-1" />
-                        {row.distance.toFixed(2)} km away
+                        {row.distance.toFixed(2)} {t('home.unitKm')}
                     </div>
                 </div>
                 {/* Favorite Checkbox */}
@@ -333,9 +339,9 @@ function HomePage() {
             
             <div className="flex items-center justify-between mt-3">
                 <Badge variant="secondary" className="text-xs">
-                    {row.events.length} Events
+                    {row.events.length} {t('home.eventsSection')}
                 </Badge>
-                <span className="text-xs text-muted-foreground">Tap for details</span>
+                <span className="text-xs text-muted-foreground">{t('home.tapDetails')}</span>
             </div>
         </div>
     ))}
@@ -350,21 +356,21 @@ function HomePage() {
 								className="border-b px-3 py-2 text-left font-medium cursor-pointer select-none"
 								onClick={() => handleSort("name")}
 							>
-								Name of Location{sortLabel("name")}
+								{t('home.headerName')}{sortLabel("name")}
 							</th>
 							<th
 								className="border-b px-3 py-2 text-left font-medium cursor-pointer select-none"
 								onClick={() => handleSort("events")}
 							>
-								No. of Events{sortLabel("events")}
+								{t('home.headerEvents')}{sortLabel("events")}
 							</th>
 							<th
 								className="border-b px-3 py-2 text-left font-medium cursor-pointer select-none"
 								onClick={() => handleSort("distance")}
 							>
-								Distance{sortLabel("distance")}
+								{t('home.headerDistance')}{sortLabel("distance")}
 							</th>
-							<th className="border-b px-3 py-2 text-center font-medium">Add to Favorite</th>
+							<th className="border-b px-3 py-2 text-center font-medium">{t('home.headerFavorite')}</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -375,9 +381,9 @@ function HomePage() {
 							onClick={() => handleSelectVenue(row)} // [MODIFIED] Select venue on click
                         	>
 								<td className="border-b px-3 py-2">{i + 1}</td>
-								<td className="border-b px-3 py-2">{row.name}</td>
+								<td className="border-b px-3 py-2">{resolve(row, 'name')}</td>
 								<td className="border-b px-3 py-2">{row.events.length}</td>
-								<td className="border-b px-3 py-2">{row.distance.toFixed(2)} km</td>
+								<td className="border-b px-3 py-2">{row.distance.toFixed(2)} {t('home.unitKm')}</td>
 								<td className="border-b px-3 py-2 text-center">
 									<input
 										type="checkbox"
@@ -394,7 +400,7 @@ function HomePage() {
 			</div>
 
 			<div ref={mapSectionRef}>
-				<h2 className="mb-4 text-xl font-bold">Map View</h2>
+				<h2 className="mb-4 text-xl font-bold">{t('home.mapView')}</h2>
                 {/* [MODIFIED] Pass handlers to map */}
 				<div className="w-full h-[400px] border rounded overflow-hidden">
 					<MapComponent 
@@ -422,15 +428,15 @@ function HomePage() {
 										{/* Drawer Header */}
 										<div className="p-6 pb-2">
 											<div className="flex items-center justify-between mb-2">
-												<Badge variant="outline" className="text-xs">Location Details</Badge>
+												<Badge variant="outline" className="text-xs">{t('home.locationDetails')}</Badge>
 												<Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleCloseView}>
 													<X className="h-4 w-4" />
 												</Button>
 											</div>
-											<SheetTitle className="text-xl font-bold leading-tight">{selectedVenue.name}</SheetTitle>
+											<SheetTitle className="text-xl font-bold leading-tight">{resolve(selectedVenue, 'name')}</SheetTitle>
 											<SheetDescription className="flex items-center gap-1 mt-2 text-xs">
 												<MapPin className="h-3 w-3" />
-												{selectedVenue.latitude.toFixed(4)}, {selectedVenue.longitude.toFixed(4)}
+												{[translateLocation(selectedVenue.district), translateLocation(selectedVenue.area)].filter(Boolean).join(', ') || t('home.addressUnavailable')}
 											</SheetDescription>
 										</div>
 										
@@ -442,7 +448,7 @@ function HomePage() {
 												<div>
 													<h3 className="font-semibold flex items-center gap-2 mb-3">
 														<Calendar className="h-4 w-4 text-primary" /> 
-														Events ({selectedVenue.events?.length || 0})
+														{t('home.eventsSection')} ({selectedVenue.events?.length || 0})
 													</h3>
 													<div className="space-y-4">
 														{/* Events Mapping */}
@@ -452,24 +458,26 @@ function HomePage() {
 																	
 																	{/* Event Title */}
 																	<div className="font-bold text-base text-primary mb-1">
-																		{event.title || "Event Title"}
+																		{resolve(event, 'title') || "Event Title"}
 																	</div>
 																	
 																	{/* Presenter */}
 																	<div className="text-xs text-muted-foreground mb-3">
-																		Presented by {event.presentor || "Organizer"}
+																		{t('home.presentedBy')} {language === 'zh' ? (event.presenterChinese || event.presentor) : event.presentor}
 																	</div>
 
 																	{/* Description - Using Helper Component */}
-																	<EventDescription text={event.description} />
+																	<EventDescription  text={resolve(event, 'description')} 
+                                                                        t={t}  />
 
 																	{/* Sessions List - Using Helper Component */}
-																	<EventSessions dateString={event.dateTime} />
+																	<EventSessions dateString={language === 'zh' && event.dateTimeChinese ? event.dateTimeChinese : event.dateTime}
+                                                                        t={t} />
 
 																</div>
 															))
 														) : (
-															<div className="text-sm text-muted-foreground italic">No events found.</div>
+															<div className="text-sm text-muted-foreground italic">{t('home.noEvents')}</div>
 														)}
 													</div>
 												</div>
@@ -480,7 +488,7 @@ function HomePage() {
 												<div>
 													<h3 className="font-semibold flex items-center gap-2 mb-3">
 														<MessageSquare className="h-4 w-4 text-primary" /> 
-														Comments
+															{t('home.comments')}
 													</h3>
 													<div className="space-y-4">
 														{/* Comment List */}
@@ -500,7 +508,7 @@ function HomePage() {
 														<div className="flex gap-2 pt-2 pb-6">
 															<input 
 																className="flex-1 bg-background border rounded-md px-3 py-2 text-xs"
-																placeholder="Write a comment..."
+																placeholder={t('home.writeComment')}
 																value={newComment}
 																onChange={(e) => setNewComment(e.target.value)}
 															/>
@@ -596,7 +604,7 @@ function parseSessionString(str) {
 }
 
 // --- Helper Component: Expandable Description ---
-function EventDescription({ text }) {
+function EventDescription({ text, t }) {
     const [isExpanded, setIsExpanded] = useState(false);
     if (!text) return null;
 
@@ -612,7 +620,7 @@ function EventDescription({ text }) {
                     onClick={() => setIsExpanded(!isExpanded)}
                     className="text-xs text-primary font-medium mt-1 hover:underline focus:outline-none"
                 >
-                    {isExpanded ? "Show less" : "More details"}
+                    {isExpanded ? t('home.showLess') : t('home.showMore')}
                 </button>
             )}
         </div>
@@ -620,10 +628,10 @@ function EventDescription({ text }) {
 }
 
 // --- Helper Component: Expandable Sessions ---
-function EventSessions({ dateString }) {
+function EventSessions({ dateString, t }) {
     const [isExpanded, setIsExpanded] = useState(false);
     
-    if (!dateString) return <div className="text-xs text-muted-foreground">Date TBA</div>;
+    if (!dateString) return <div className="text-xs text-muted-foreground">{t('home.dateTBA')}</div>;
     
     const sessions = parseSessionString(dateString);
     if (sessions.length === 0) return null;
@@ -634,7 +642,7 @@ function EventSessions({ dateString }) {
 
     return (
         <div className="space-y-3 pt-2 border-t border-dashed">
-            <span className="text-xs font-semibold text-foreground block">Event Sessions:</span>
+            <span className="text-xs font-semibold text-foreground block">{t('home.eventSessions')}</span>
             
             {/* Always show the first session */}
             <div className="flex flex-col">
@@ -660,7 +668,7 @@ function EventSessions({ dateString }) {
                         onClick={() => setIsExpanded(!isExpanded)}
                         className="text-xs text-primary font-medium hover:underline flex items-center gap-1 mt-1"
                     >
-                        {isExpanded ? "Show less" : `View ${restSessions.length} more session(s)`}
+                        {isExpanded ? t('home.showLess') : t('home.viewMoreSessions').replace('{count}', restSessions.length)}
                     </button>
                 </>
             )}
