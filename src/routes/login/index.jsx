@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { loginUser } from "@/services/authenication";
@@ -39,7 +39,7 @@ function LoginPage() {
 
 		try {
 			const data = await loginUser({ username, password });
-			login(data.token, data.role);
+			login(data.token, data.role, data.username);
 		} catch (err) {
 			setError(err.response?.data?.message || "Login failed");
 		} finally {
@@ -90,7 +90,7 @@ function LoginPage() {
 											{loading ? "Logging in..." : "Login"}
 										</Button>
 										<FieldDescription className="text-center">
-											Don&apos;t have an account? <a href="/signup">Sign up</a>
+											Don&apos;t have an account? <Link to="/signup">Sign up</Link>
 										</FieldDescription>
 									</Field>
 								</FieldGroup>
