@@ -7,15 +7,23 @@ const DEFAULT_ZOOM = 11;
 
 // [NEW] Helper component to handle camera movement
 const CameraControl = ({ selectedVenue }) => {
-  const map = useMap();
+  const map = useMap("main-map");
 
   useEffect(() => {
     if (!map || !selectedVenue) return;
 
-    // 1. Pan to the new center
-    map.panTo({ lat: selectedVenue.latitude, lng: selectedVenue.longitude });
-    
-    // 2. Zoom in significantly (Level 16 is street level)
+    const lat = Number(selectedVenue.latitude);
+    const lng = Number(selectedVenue.longitude);
+
+    if (isNaN(lat) || isNaN(lng)) return;
+
+    const OFFSET_AMOUNT = 0.05; 
+    const targetLat = lat - OFFSET_AMOUNT;
+
+    google.maps.event.trigger(map, "resize");
+
+    // Pan to the OFFSET position, not the actual pin position
+    map.panTo({ lat: targetLat, lng });
     map.setZoom(12);
     
   }, [map, selectedVenue]);
@@ -27,7 +35,7 @@ export default function MapComponent({
   venues = [], 
   center = DEFAULT_CENTER, 
   zoom = DEFAULT_ZOOM,
-  selectedVenue = null, // Receive the selected venue
+  selectedVenue = null, 
   onMarkerClick = () => {} 
 }) {
   const navigate = useNavigate();
@@ -41,33 +49,34 @@ export default function MapComponent({
     <div className="h-[750px] w-full rounded-md overflow-hidden shadow-md border border-gray-200">
       <APIProvider apiKey={API_KEY}>
         <Map
+          // [CRITICAL] Add this ID so useMap("main-map") can find it
+          id="main-map" 
           defaultCenter={center}
           defaultZoom={zoom}
           mapId="DEMO_MAP_ID" 
           gestureHandling={'greedy'}
           disableDefaultUI={false}
         >
-          {/* [CRITICAL] This component handles the zooming logic */}
+          {/* This component handles the zooming logic */}
           <CameraControl selectedVenue={selectedVenue} />
 
           {venues.map((venue) => {
             if (!venue.latitude || !venue.longitude) return null;
-
-            // Determine if this marker is the selected one
-            const isSelected = selectedVenue?.venueId === venue.venueId;
+            
+            const isSelected = selectedVenue?._id === venue._id;
 
             return (
               <AdvancedMarker
-                key={venue.venueId} 
+                key={venue._id} 
                 position={{ lat: venue.latitude, lng: venue.longitude }}
                 onClick={() => onMarkerClick(venue)}
-                zIndex={isSelected ? 100 : 1} // Bring selected marker to front
+                zIndex={isSelected ? 100 : 1} 
               >
                 <Pin 
-                  background={isSelected ? '#2563EB' : '#E11D48'} // Blue if selected, Red if not
+                  background={isSelected ? '#2563EB' : '#E11D48'} 
                   glyphColor={'#FFF'} 
                   borderColor={'#FFF'} 
-                  scale={isSelected ? 1.2 : 1.0} // Make selected pin slightly bigger
+                  scale={isSelected ? 1.3 : 1.0} 
                 />
               </AdvancedMarker>
             );

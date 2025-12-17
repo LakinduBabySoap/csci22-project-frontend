@@ -1,11 +1,12 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { getVenueComments, addVenueComment } from "@/services/comments";
 import { getAllVenues, addFavoriteVenue, removeFavoriteVenue, getFavoriteVenues } from "@/services/venues";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircleIcon } from "lucide-react";
 import MapComponent from "@/components/mapView.jsx";
 import { getVenues } from "@/services/venues";
+import{useMediaQuery} from "@/hooks/use-media-query";
 import {
   Sheet,
   SheetContent,
@@ -19,6 +20,7 @@ import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { X, MapPin, Calendar, MessageSquare, Send } from 'lucide-react'
+
 
 export const Route = createFileRoute("/")({
 	component: HomePage,
@@ -43,6 +45,10 @@ const user_longitude = 114.20644;
 const degToRad = (deg) => (deg * Math.PI) / 180;
 
 function HomePage() {
+
+	const isDesktop = useMediaQuery("(min-width: 768px)");
+	const mapSectionRef = useRef(null);
+
 	const [locations, setLocations] = useState([]);
 	const [favoriteIds, setFavoriteIds] = useState([]);
 	// key: "name", "events", "distance", null
@@ -139,9 +145,17 @@ function HomePage() {
         }
     }, [selectedVenue]);
 	
+	
+	
 	const handleSelectVenue = (venue) => {
         setSelectedVenue(venue);
+		setTimeout(() => {
+            mapSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 150);
     };
+
+
+	
 
 	const handleAddComment = async () => {
         if (!newComment.trim()) return;
@@ -198,9 +212,6 @@ function HomePage() {
 
 	const sortedLocations = useMemo(() => {
 		// If a location is selected, ONLY return that location
-		if (selectedVenue) {
-            return [selectedVenue];
-        }
 
 		let arr = [...locations]
 		
@@ -260,18 +271,18 @@ function HomePage() {
 	if (loading) return <div className="p-8">Loading...</div>;
 
 	return (
-		<div className="p-4">
+		<div className={`min-h-screen bg-background p-4 transition-all duration-300 ${selectedVenue ? "pb-[60vh] md:pb-24" : "pb-24"}`}>
 			<div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold">Locations</h1>
             </div>
 
-			<div className="mb-4">
+			<div className="mb-4 flex flex-col gap-3 sm:flex-row">
 				<input
 					type="text"
 					placeholder="Search Location"
 					value={searchTerm}
 					onChange={(e) => setSearchTerm(e.target.value)}
-					className="w-full max-w-sm rounded border px-3 py-2 text-sm"
+					className="w-full sm:max-w-sm rounded border px-3 py-2 text-sm"
 					disabled={!!selectedVenue} 
 				/>
 				<input
@@ -286,12 +297,51 @@ function HomePage() {
 							setmaxDistance(val);
 						}
 					}}
-					className="w-full max-w-xs rounded border px-3 py-2 text-sm"
+					className="w-full sm:max-w-xs rounded border px-3 py-2 text-sm"
 					disabled={!!selectedVenue}
 				/>
 			</div>
+			
+			<div className="grid grid-cols-1 gap-4 md:hidden mb-6">
+    {sortedLocations.map((row) => (
+        <div 
+            key={row._id} 
+            onClick={() => handleSelectVenue(row)}
+            className={`
+                rounded-lg border p-4 shadow-sm transition-colors cursor-pointer
+                ${selectedVenue?._id === row._id ? "border-primary bg-primary/5" : "bg-card hover:bg-muted/50"}
+            `}
+        >
+            <div className="flex justify-between items-start mb-2">
+                <div>
+                    <h3 className="font-bold text-base">{row.name}</h3>
+                    <div className="flex items-center text-muted-foreground text-xs mt-1">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        {row.distance.toFixed(2)} km away
+                    </div>
+                </div>
+                {/* Favorite Checkbox */}
+                <div onClick={(e) => e.stopPropagation()}>
+                    <input
+                        type="checkbox"
+                        checked={favoriteIds.includes(row._id)}
+                        onChange={() => toggleFavorite(row._id)}
+                        className="h-5 w-5 cursor-pointer accent-primary"
+                    />
+                </div>
+            </div>
+            
+            <div className="flex items-center justify-between mt-3">
+                <Badge variant="secondary" className="text-xs">
+                    {row.events.length} Events
+                </Badge>
+                <span className="text-xs text-muted-foreground">Tap for details</span>
+            </div>
+        </div>
+    ))}
+</div>
 
-			<div className="overflow-x-auto rounded border">
+			<div className="hidden md:block overflow-x-auto rounded border mb-6">
 				<table className="min-w-full border-collapse text-sm">
 					<thead className="bg-muted">
 						<tr>
@@ -320,7 +370,7 @@ function HomePage() {
 					<tbody>
 						{sortedLocations.map((row, i) => (
 							<tr key={row._id} className={`border-b cursor-pointer transition-colors
-								${selectedVenue?.venueId === row.venueId ? "bg-blue-50 border-l-4 border-l-blue-500" : "hover:bg-muted/50"}
+								${selectedVenue?._id === row._id ? "bg-muted border-l-4 border-l-primary" : "hover:bg-muted/50"}
 							`}
 							onClick={() => handleSelectVenue(row)} // [MODIFIED] Select venue on click
                         	>
@@ -343,20 +393,32 @@ function HomePage() {
 				</table>
 			</div>
 
-			<div>
+			<div ref={mapSectionRef}>
 				<h2 className="mb-4 text-xl font-bold">Map View</h2>
                 {/* [MODIFIED] Pass handlers to map */}
-				<MapComponent 
-                    venues={sortedLocations} // Pass ALL locations so pins remain visible
-                    selectedVenue={selectedVenue} // For zooming
-                    onMarkerClick={handleSelectVenue} // For selection
-                />
+				<div className="w-full h-[400px] border rounded overflow-hidden">
+					<MapComponent 
+						venues={sortedLocations} // Pass ALL locations so pins remain visible
+						selectedVenue={selectedVenue} // For zooming
+						onMarkerClick={handleSelectVenue} // For selection
+					/>
+				</div>
       		</div>
 
 			<Sheet open={!!selectedVenue} modal={false}>
-							<SheetContent side="left" className="w-[400px] p-0 shadow-2xl border-r z-50 bg-background" onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={handleCloseView}>
+				<SheetContent side={isDesktop ? "left" : "bottom"} className={`p-0 shadow-2xl z-50 bg-background
+            		${isDesktop 
+						? "w-[400px] border-r h-full"  // Desktop: Sidebar style
+						: "w-full border-t rounded-t-xl h-[60vh] sm:h-[60vh]" // Mobile: Bottom Card style (60% height)
+           			}`} onInteractOutside={(e) => e.preventDefault()} onEscapeKeyDown={handleCloseView}>
 								{selectedVenue && (
 									<div className="flex flex-col h-full">
+										{!isDesktop && (
+											<div className="w-full flex justify-center pt-3 pb-1">
+												<div className="h-1.5 w-12 bg-muted-foreground/20 rounded-full" />
+											</div>
+										)}
+
 										{/* Drawer Header */}
 										<div className="p-6 pb-2">
 											<div className="flex items-center justify-between mb-2">
@@ -386,10 +448,10 @@ function HomePage() {
 														{/* Events Mapping */}
 														{selectedVenue.events && selectedVenue.events.length > 0 ? (
 															selectedVenue.events.map((event, idx) => (
-																<div key={idx} className="bg-white p-4 rounded-lg border shadow-sm text-sm">
+																<div key={idx} className= "bg-card text-card-foreground p-4 rounded-lg border shadow-sm text-sm">
 																	
 																	{/* Event Title */}
-																	<div className="font-bold text-base text-blue-700 mb-1">
+																	<div className="font-bold text-base text-primary mb-1">
 																		{event.title || "Event Title"}
 																	</div>
 																	
@@ -435,7 +497,7 @@ function HomePage() {
 														</div>
 														
 														{/* Add Comment Input */}
-														<div className="flex gap-2 pt-2">
+														<div className="flex gap-2 pt-2 pb-6">
 															<input 
 																className="flex-1 bg-background border rounded-md px-3 py-2 text-xs"
 																placeholder="Write a comment..."
@@ -542,13 +604,13 @@ function EventDescription({ text }) {
 
     return (
         <div className="mb-3">
-            <div className={`text-sm text-gray-700 leading-relaxed ${!isExpanded ? 'line-clamp-3' : ''}`}>
+            <div className={`text-sm text-muted-foreground leading-relaxed ${!isExpanded ? 'line-clamp-3' : ''}`}>
                 {text}
             </div>
             {showButton && (
                 <button
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="text-xs text-blue-600 font-medium mt-1 hover:underline focus:outline-none"
+                    className="text-xs text-primary font-medium mt-1 hover:underline focus:outline-none"
                 >
                     {isExpanded ? "Show less" : "More details"}
                 </button>
@@ -572,11 +634,11 @@ function EventSessions({ dateString }) {
 
     return (
         <div className="space-y-3 pt-2 border-t border-dashed">
-            <span className="text-xs font-semibold text-gray-900 block">Event Sessions:</span>
+            <span className="text-xs font-semibold text-foreground block">Event Sessions:</span>
             
             {/* Always show the first session */}
             <div className="flex flex-col">
-                <div className="font-medium text-gray-800 flex items-start gap-2">
+                <div className="font-medium text-foreground flex items-start gap-2">
                     <span className="text-xs mt-0.5">📅</span>
                     <span>{firstSession}</span>
                 </div>
@@ -587,7 +649,7 @@ function EventSessions({ dateString }) {
                 <>
                     {isExpanded && restSessions.map((session, idx) => (
                         <div key={idx} className="flex flex-col animate-in fade-in slide-in-from-top-1 duration-200">
-                             <div className="font-medium text-gray-800 flex items-start gap-2">
+                             <div className="font-medium text-foreground flex items-start gap-2">
                                 <span className="text-xs mt-0.5">📅</span>
                                 <span>{session}</span>
                             </div>
@@ -596,7 +658,7 @@ function EventSessions({ dateString }) {
 
                     <button 
                         onClick={() => setIsExpanded(!isExpanded)}
-                        className="text-xs text-blue-600 font-medium hover:underline flex items-center gap-1 mt-1"
+                        className="text-xs text-primary font-medium hover:underline flex items-center gap-1 mt-1"
                     >
                         {isExpanded ? "Show less" : `View ${restSessions.length} more session(s)`}
                     </button>
