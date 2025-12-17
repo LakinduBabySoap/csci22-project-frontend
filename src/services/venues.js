@@ -12,11 +12,6 @@ instance.interceptors.request.use((config) => {
 	return config;
 });
 
-export const getVenues = async () => {
-	const { data } = await instance.get("/venues");
-	return data;
-};
-
 export const getAllVenues = async () => {
 	const { data } = await instance.get("/venues");
 	return data;

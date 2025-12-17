@@ -5,7 +5,6 @@ import { getAllVenues, addFavoriteVenue, removeFavoriteVenue, getFavoriteVenues 
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircleIcon } from "lucide-react";
 import MapComponent from "@/components/mapView.jsx";
-import { getVenues } from "@/services/venues";
 import{useMediaQuery} from "@/hooks/use-media-query";
 import {
   Sheet,
@@ -65,6 +64,7 @@ function HomePage() {
 	const [comments, setComments] = useState([]);
 	const [newComment, setNewComment] = useState("")
 	const [loadingComments, setLoadingComments] = useState(false);
+	const [selectedDistrict, setSelectedDistrict] = useState('')
 
 	const showError = (message) => {
 		setError(message);
@@ -210,6 +210,16 @@ function HomePage() {
 		});
 	};
 
+	const districtOptions = useMemo(() => {
+		const set = new Set()
+		locations.forEach((loc) => {
+			if (loc.district) {
+				set.add(loc.district)
+			}
+		})
+		return Array.from(set).sort()
+	}, [locations]);
+	
 	const sortedLocations = useMemo(() => {
 		// If a location is selected, ONLY return that location
 
@@ -219,6 +229,11 @@ function HomePage() {
 		const st1 = searchTerm.trim().toLowerCase();
 		if (st1) {
 			arr = arr.filter((loc) => loc.name.toLowerCase().includes(st1));
+		}
+
+		// Filter by district
+		if (selectedDistrict) {
+			arr = arr.filter((loc) => loc.district === selectedDistrict)
 		}
 
 		// Search distance
@@ -261,7 +276,7 @@ function HomePage() {
 		});
 
 		return arr;
-	}, [locations, sortingState, searchTerm, maxDistance]);
+	}, [locations, sortingState, searchTerm, maxDistance, selectedDistrict]);
 
 	const sortLabel = (key) => {
 		if (sortingState.key !== key || !sortingState.direction) return "";
@@ -300,6 +315,19 @@ function HomePage() {
 					className="w-full sm:max-w-xs rounded border px-3 py-2 text-sm"
 					disabled={!!selectedVenue}
 				/>
+				<select
+					value={selectedDistrict}
+					onChange={(e) => setSelectedDistrict(e.target.value)}
+					className="w-full sm:max-w-xs rounded border px-3 py-2 text-sm"
+					disabled={!!selectedVenue}
+				>
+					<option value="">All districts</option>
+					{districtOptions.map((district) => (
+						<option key={district} value={district}>
+							{district}
+						</option>
+					))}
+				</select>
 			</div>
 			
 			<div className="grid grid-cols-1 gap-4 md:hidden mb-6">
