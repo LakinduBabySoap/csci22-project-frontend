@@ -8,3 +8,8 @@ export const loginUser = async (credentials) => {
 	const { data } = await instance.post("/auth/login", credentials);
 	return data;
 };
+
+export const signupUser = async (credentials) => {
+	const { data } = await instance.post("/auth/signup", credentials);
+	return data;
+};
