@@ -30,8 +30,8 @@ export const Route = createFileRoute("/")({
 });
 
 // Default to be Pi Chiu Building, CUHK
-const user_latitude = 22.41975;
-const user_longitude = 114.20644;
+//const user_latitude = 22.41975;
+//const user_longitude = 114.20644;
 
 const degToRad = (deg) => (deg * Math.PI) / 180;
 
@@ -51,12 +51,16 @@ function HomePage() {
 	const [maxDistance, setmaxDistance] = useState("");
 	const [error, setError] = useState(null);
 	const [loading, setLoading] = useState(true);
-
-	const [selectedVenue, setSelectedVenue] = useState(null);
+	// comments section
+	const [selectedVenue, setSelectedVenue] = useState(null)
 	const [comments, setComments] = useState([]);
 	const [newComment, setNewComment] = useState("");
 	const [loadingComments, setLoadingComments] = useState(false);
-	const [selectedDistrict, setSelectedDistrict] = useState("");
+	// district Filtering
+	const [selectedDistrict, setSelectedDistrict] = useState('')
+	// geolocation
+	const [userLocation, setUserLocation] = useState(null); 
+    const [locationError, setLocationError] = useState(null);
 
 	const showError = (message) => {
 		setError(message);
@@ -66,6 +70,66 @@ function HomePage() {
 	// useEffect(() => {
 	// 	async function load() {
 	// 		const data = await getVenues()
+
+	useEffect(() => {
+        // 1. Define the fallback function (used when blocked or error)
+        const useFallbackLocation = (msg) => {
+            console.warn(msg);
+            setLocationError(msg);
+            // PREVENT CRASH: Set default location (CUHK) so distance calc works
+            //setUserLocation(null);
+        };
+
+        // 2. Define the success function
+        const handleSuccess = (position) => {
+			console.log("Browser Coordinates:", position.coords.latitude, position.coords.longitude);
+            setUserLocation({
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+            });
+            setLocationError(null);
+        };
+
+        // 3. Define the error function (for when actual fetch fails)
+        const handleError = (error) => {
+            console.error("Error getting location:", error);
+            if (error.code === error.PERMISSION_DENIED) {
+                useFallbackLocation("Location access denied. Using default location.");
+            } else {
+                useFallbackLocation("Location unavailable. Using default location.");
+            }
+        };
+
+        // 4. Main Logic: Check Permissions first
+        if (!navigator.geolocation) {
+            useFallbackLocation("Geolocation not supported");
+            return;
+        }
+
+        // Check permission status without triggering popup first
+        if (navigator.permissions && navigator.permissions.query) {
+            navigator.permissions.query({ name: "geolocation" }).then((result) => {
+                console.log("Geolocation permission state:", result.state);
+
+                if (result.state === "denied") {
+                    // User previously blocked it. Don't spam them, just use fallback immediately.
+                    useFallbackLocation("Location is blocked by browser settings.");
+                } else {
+                    // State is 'granted' or 'prompt'. Safe to request.
+                    navigator.geolocation.getCurrentPosition(handleSuccess, handleError, {
+                        enableHighAccuracy: true,
+                        timeout: 5000,
+                        maximumAge: 0
+                    });
+                }
+            });
+        } else {
+            // Fallback for browsers that don't support permissions API
+            navigator.geolocation.getCurrentPosition(handleSuccess, handleError);
+        }
+    }, []);
+
+	
 	useEffect(() => {
 		async function load() {
 			try {
@@ -82,14 +146,20 @@ function HomePage() {
 
 				//console.log(' Extracted favorite IDs:', favIds);
 				setFavoriteIds(favIds);
-				const appendDistances = venuesData.map((loc) => {
-					const a =
-						Math.sin(degToRad(loc.latitude - user_latitude) / 2) ** 2 +
-						Math.cos(degToRad(user_latitude)) *
-							Math.cos(degToRad(loc.latitude)) *
-							Math.sin(degToRad(loc.longitude - user_longitude) / 2) ** 2;
 
-					const distance = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+				const appendDistances = venuesData.map((loc) => {
+                    let distance = null;
+
+                    // Only calculate if we have the user's real location
+                    if (userLocation) {
+                        const a =
+                            Math.sin(degToRad(loc.latitude - userLocation.lat) / 2) ** 2 +
+                            Math.cos(degToRad(userLocation.lat)) *
+                            Math.cos(degToRad(loc.latitude)) *
+                            Math.sin(degToRad(loc.longitude - userLocation.lng) / 2) ** 2;
+
+                        distance = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                    }
 
 					return {
 						...loc,
@@ -112,7 +182,7 @@ function HomePage() {
 			}
 		}
 		load();
-	}, []);
+	}, [userLocation, locationError]);
 
 	useEffect(() => {
 		// 1. Check if a venue is selected and has a valid ID
@@ -379,35 +449,39 @@ function HomePage() {
                 rounded-lg border p-4 shadow-sm transition-colors cursor-pointer
                 ${selectedVenue?._id === row._id ? "border-primary bg-primary/5" : "bg-card hover:bg-muted/50"}
             `}
-					>
-						<div className="flex justify-between items-start mb-2">
-							<div>
-								<h3 className="font-bold text-base">{resolve(row, "name")}</h3>
-								<div className="flex items-center text-muted-foreground text-xs mt-1">
-									<MapPin className="h-3 w-3 mr-1" />
-									{row.distance.toFixed(2)} {t("home.unitKm")}
-								</div>
-							</div>
-							{/* Favorite Checkbox */}
-							<div onClick={(e) => e.stopPropagation()}>
-								<input
-									type="checkbox"
-									checked={favoriteIds.includes(row._id)}
-									onChange={() => toggleFavorite(row._id)}
-									className="h-5 w-5 cursor-pointer accent-primary"
-								/>
-							</div>
+        >
+            <div className="flex justify-between items-start mb-2">
+                <div>
+                    <h3 className="font-bold text-base">{resolve(row, 'name')}</h3>
+                    <div className="flex items-center text-muted-foreground text-xs mt-1">
+                        <MapPin className="h-3 w-3 mr-1" />
+						{locationError ? (
+        <span className="text-red-500">{locationError}</span>
+    ) : (
+                        <>{row.distance !== null ? row.distance.toFixed(2) : "--"} {t('home.unitKm')}</>
+	)}
 						</div>
-
-						<div className="flex items-center justify-between mt-3">
-							<Badge variant="secondary" className="text-xs">
-								{row.events.length} {t("home.eventsSection")}
-							</Badge>
-							<span className="text-xs text-muted-foreground">{t("home.tapDetails")}</span>
-						</div>
-					</div>
-				))}
-			</div>
+                </div>
+                {/* Favorite Checkbox */}
+                <div onClick={(e) => e.stopPropagation()}>
+                    <input
+                        type="checkbox"
+                        checked={favoriteIds.includes(row._id)}
+                        onChange={() => toggleFavorite(row._id)}
+                        className="h-5 w-5 cursor-pointer accent-primary"
+                    />
+                </div>
+            </div>
+            
+            <div className="flex items-center justify-between mt-3">
+                <Badge variant="secondary" className="text-xs">
+                    {row.events.length} {t('home.eventsSection')}
+                </Badge>
+                <span className="text-xs text-muted-foreground">{t('home.tapDetails')}</span>
+            </div>
+        </div>
+    ))}
+</div>
 
 			<div className="hidden md:block overflow-x-auto rounded border mb-6">
 				<table className="min-w-full border-collapse text-sm">
@@ -451,8 +525,12 @@ function HomePage() {
 								<td className="border-b px-3 py-2">{resolve(row, "name")}</td>
 								<td className="border-b px-3 py-2">{row.events.length}</td>
 								<td className="border-b px-3 py-2">
-									{row.distance.toFixed(2)} {t("home.unitKm")}
-								</td>
+    {locationError ? (
+        <span className="text-red-500 text-xs">{locationError}</span>
+    ) : (
+        <>{row.distance !== null ? row.distance.toFixed(2) : "--"} {t('home.unitKm')}</>
+    )}
+	</td>
 								<td className="border-b px-3 py-2 text-center">
 									<input
 										type="checkbox"
@@ -478,6 +556,7 @@ function HomePage() {
 						onMarkerClick={handleSelectVenue} // For selection
 						language={language} //for Map language
 						resolve={resolve} //for Map language
+						userLocation={userLocation}
 					/>
 				</div>
 			</div>
