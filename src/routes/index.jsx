@@ -72,62 +72,66 @@ function HomePage() {
 	// 		const data = await getVenues()
 
 	useEffect(() => {
-        // 1. Define the fallback function (used when blocked or error)
-        const useFallbackLocation = (msg) => {
-            console.warn(msg);
-            setLocationError(msg);
-            // PREVENT CRASH: Set default location (CUHK) so distance calc works
-            //setUserLocation(null);
-        };
+		// Define error messages based on language
+		const errorMessage = language === "zh"
+			? "無法獲取地理位置，權限被拒絕"
+			: "Geolocation unavailable, permission denied";
 
-        // 2. Define the success function
-        const handleSuccess = (position) => {
+		// 1. Define the fallback function
+		const useFallbackLocation = (msg) => {
+			console.warn(msg);
+			setLocationError(msg);
+		};
+
+		// 2. Define the success function
+		const handleSuccess = (position) => {
 			console.log("Browser Coordinates:", position.coords.latitude, position.coords.longitude);
-            setUserLocation({
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-            });
-            setLocationError(null);
-        };
+			setUserLocation({
+				lat: position.coords.latitude,
+				lng: position.coords.longitude,
+			});
+			setLocationError(null);
+		};
 
-        // 3. Define the error function (for when actual fetch fails)
-        const handleError = (error) => {
-            console.error("Error getting location:", error);
-            if (error.code === error.PERMISSION_DENIED) {
-                useFallbackLocation("Location access denied. Using default location.");
-            } else {
-                useFallbackLocation("Location unavailable. Using default location.");
-            }
-        };
+		// 3. Define the error function (for when actual fetch fails)
+		const handleError = (error) => {
+			console.error("Error getting location:", error);
+			// Use the specific message if permission is denied, otherwise keep generic or use the same
+			if (error.code === error.PERMISSION_DENIED) {
+				useFallbackLocation(errorMessage);
+			} else {
+				useFallbackLocation(errorMessage); 
+			}
+		};
 
-        // 4. Main Logic: Check Permissions first
-        if (!navigator.geolocation) {
-            useFallbackLocation("Geolocation not supported");
-            return;
-        }
+		// 4. Main Logic: Check Permissions first
+		if (!navigator.geolocation) {
+			useFallbackLocation(language === "zh" ? "瀏覽器不支持地理位置功能" : "Geolocation not supported");
+			return;
+		}
 
-        // Check permission status without triggering popup first
-        if (navigator.permissions && navigator.permissions.query) {
-            navigator.permissions.query({ name: "geolocation" }).then((result) => {
-                console.log("Geolocation permission state:", result.state);
+		// Check permission status
+		if (navigator.permissions && navigator.permissions.query) {
+			navigator.permissions.query({ name: "geolocation" }).then((result) => {
+				console.log("Geolocation permission state:", result.state);
 
-                if (result.state === "denied") {
-                    // User previously blocked it. Don't spam them, just use fallback immediately.
-                    useFallbackLocation("Location is blocked by browser settings.");
-                } else {
-                    // State is 'granted' or 'prompt'. Safe to request.
-                    navigator.geolocation.getCurrentPosition(handleSuccess, handleError, {
-                        enableHighAccuracy: true,
-                        timeout: 5000,
-                        maximumAge: 0
-                    });
-                }
-            });
-        } else {
-            // Fallback for browsers that don't support permissions API
-            navigator.geolocation.getCurrentPosition(handleSuccess, handleError);
-        }
-    }, []);
+				if (result.state === "denied") {
+					// User previously blocked it
+					useFallbackLocation(errorMessage);
+				} else {
+					// State is 'granted' or 'prompt'
+					navigator.geolocation.getCurrentPosition(handleSuccess, handleError, {
+						enableHighAccuracy: true,
+						timeout: 5000,
+						maximumAge: 0,
+					});
+				}
+			});
+		} else {
+			// Fallback for browsers that don't support permissions API
+			navigator.geolocation.getCurrentPosition(handleSuccess, handleError);
+		}
+	}, [language]);
 
 	
 	useEffect(() => {
