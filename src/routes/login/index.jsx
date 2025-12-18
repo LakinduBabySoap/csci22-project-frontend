@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel, FieldDescription } from "@/components/ui/field";
 import { Alert, AlertTitle } from "@/components/ui/alert";
+import { useLanguage } from "@/hooks/LanguageContext";
 
 export const Route = createFileRoute("/login/")({
 	component: LoginPage,
@@ -18,6 +19,7 @@ function LoginPage() {
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
 
+	const { t } = useLanguage();
 	const { login, isAuthenticated } = useAuth();
 	const navigate = useNavigate();
 	const router = useRouter();
@@ -41,7 +43,7 @@ function LoginPage() {
 			const data = await loginUser({ username, password });
 			login(data.token, data.role, data.username);
 		} catch (err) {
-			setError(err.response?.data?.message || "Login failed");
+			setError(err.response?.data?.message || t("login.failed"));
 		} finally {
 			setLoading(false);
 		}
@@ -53,7 +55,7 @@ function LoginPage() {
 				<div className="flex flex-col gap-6">
 					<Card>
 						<CardHeader>
-							<CardTitle>Login</CardTitle>
+							<CardTitle>{t("login.title")}</CardTitle>
 							<CardDescription>
 								{error && (
 									<Alert variant="destructive">
@@ -66,7 +68,7 @@ function LoginPage() {
 							<form onSubmit={handleSubmit}>
 								<FieldGroup>
 									<Field>
-										<FieldLabel htmlFor="username">Username</FieldLabel>
+										<FieldLabel htmlFor="username">{t("login.username")}</FieldLabel>
 										<Input
 											id="username"
 											type="text"
@@ -76,7 +78,7 @@ function LoginPage() {
 										/>
 									</Field>
 									<Field>
-										<FieldLabel htmlFor="password">Password</FieldLabel>
+										<FieldLabel htmlFor="password">{t("login.password")}</FieldLabel>
 										<Input
 											id="password"
 											type="password"
@@ -87,10 +89,10 @@ function LoginPage() {
 									</Field>
 									<Field>
 										<Button type="submit" disabled={loading}>
-											{loading ? "Logging in..." : "Login"}
+											{loading ? t("login.loading") : t("login.btn")}
 										</Button>
 										<FieldDescription className="text-center">
-											Don&apos;t have an account? <Link to="/signup">Sign up</Link>
+											Don&apos;t have an account? <Link to="/signup/">Sign up</Link>
 										</FieldDescription>
 									</Field>
 								</FieldGroup>
