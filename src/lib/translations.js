@@ -358,3 +358,29 @@ export const translations = {
 		},
 	},
 };
+
+// 2. Location Mapping (Fixes missing DB data)
+export const locationMap = {
+	"Sha Tin": "沙田",
+	"Sheung Shui": "上水",
+	"Tai Po": "大埔",
+	"Tsim Sha Tsui": "尖沙咀",
+	"Aldrich Bay": "愛秩序灣",
+	"Tuen Mun": "屯門",
+	"Jordan Valley": "佐敦谷",
+	"Kwai Fong": "葵芳",
+	"Yuen Long": "元朗",
+	"Ngau Chi Wan": "牛池灣",
+	Central: "中環",
+	"Lo Lung Hang": "老龍坑",
+	"Sai Wan Ho": "西灣河",
+	"Sheung Wan": "上環",
+
+	// Areas
+	"New Territories": "新界",
+	Kowloon: "九龍",
+	"Hong Kong Island": "香港島",
+
+	//"中環": "Central",    // Reverse map if needed, though usually not required for this logic
+	//"香港島": "Hong Kong Island"
+};

@@ -14,12 +14,12 @@ export const Route = createFileRoute("/login/")({
 });
 
 function LoginPage() {
+	const { t } = useLanguage();
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
 
-	const { t } = useLanguage();
 	const { login, isAuthenticated } = useAuth();
 	const navigate = useNavigate();
 	const router = useRouter();
@@ -91,9 +91,12 @@ function LoginPage() {
 										<Button type="submit" disabled={loading}>
 											{loading ? t("login.loading") : t("login.btn")}
 										</Button>
-										<FieldDescription className="text-center">
-											Don&apos;t have an account? <Link to="/signup/">Sign up</Link>
-										</FieldDescription>
+										<div className="text-center text-sm text-muted-foreground">
+											{t("login.noAccount")}{" "}
+											<Link to="/signup/" className="underline underline-offset-4">
+												{t("login.signup")}
+											</Link>
+										</div>
 									</Field>
 								</FieldGroup>
 							</form>
