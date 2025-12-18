@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel, FieldDescription } from "@/components/ui/field";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { useLanguage } from "@/hooks/LanguageContext";
 
 export const Route = createFileRoute("/signup/")({
 	component: SignUpPage,
@@ -16,6 +17,7 @@ function SignUpPage() {
 	const navigate = useNavigate();
 	const router = useRouter();
 	const { isAuthenticated } = useAuth();
+	const { t } = useLanguage();
 
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
@@ -65,7 +67,7 @@ function SignUpPage() {
 		}
 
 		if (!passwordsMatch) {
-			setError("Passwords do not match.");
+			setError(t("signup.passwordMismatch"));
 			return;
 		}
 
@@ -73,7 +75,7 @@ function SignUpPage() {
 		try {
 			await signupUser({ username: cleanUsername, password });
 
-			setSuccess("Account created successfully! Redirecting to login...");
+			setSuccess(t("signup.success"));
 			setPassword("");
 			setConfirm("");
 
@@ -93,7 +95,7 @@ function SignUpPage() {
 				<div className="flex flex-col gap-6">
 					<Card>
 						<CardHeader>
-							<CardTitle>Sign up</CardTitle>
+							<CardTitle>{t("signup.title")}</CardTitle>
 							<CardDescription className="space-y-2">
 								{error && (
 									<Alert variant="destructive">
@@ -112,7 +114,7 @@ function SignUpPage() {
 							<form onSubmit={handleSubmit}>
 								<FieldGroup>
 									<Field>
-										<FieldLabel htmlFor="username">Username</FieldLabel>
+										<FieldLabel htmlFor="username">{t("signup.username")}</FieldLabel>
 										<Input
 											id="username"
 											type="text"
@@ -123,7 +125,7 @@ function SignUpPage() {
 									</Field>
 
 									<Field>
-										<FieldLabel htmlFor="password">Password</FieldLabel>
+										<FieldLabel htmlFor="password">{t("signup.password")}</FieldLabel>
 										<Input
 											id="password"
 											type="password"
@@ -133,25 +135,25 @@ function SignUpPage() {
 										/>
 										<FieldDescription className="space-y-1">
 											<div className={rules.minLen ? "text-foreground" : "text-muted-foreground"}>
-												• At least 8 characters
+												• {t("signup.ruleMinLen")}
 											</div>
 											<div className={rules.lower ? "text-foreground" : "text-muted-foreground"}>
-												• Contains a lowercase letter
+												• {t("signup.ruleLower")}
 											</div>
 											<div className={rules.upper ? "text-foreground" : "text-muted-foreground"}>
-												• Contains an uppercase letter
+												• {t("signup.ruleUpper")}
 											</div>
 											<div className={rules.number ? "text-foreground" : "text-muted-foreground"}>
-												• Contains a number
+												• {t("signup.ruleNumber")}
 											</div>
 											<div className={rules.symbol ? "text-foreground" : "text-muted-foreground"}>
-												• Contains a symbol (e.g. !@#$)
+												• {t("signup.ruleSymbol")}
 											</div>
 										</FieldDescription>
 									</Field>
 
 									<Field>
-										<FieldLabel htmlFor="confirm">Confirm password</FieldLabel>
+										<FieldLabel htmlFor="confirmPassword">{t("signup.confirmPassword")}</FieldLabel>
 										<Input
 											id="confirm"
 											type="password"
@@ -166,11 +168,11 @@ function SignUpPage() {
 
 									<Field>
 										<Button type="submit" className="w-full" disabled={!canSubmit}>
-											{loading ? "Creating..." : "Create account"}
+											{loading ? t("signup.loading") : t("signup.btn")}
 										</Button>
 
 										<FieldDescription className="text-center">
-											Already have an account? <Link to="/login/">Log in</Link>
+											{t("signup.haveAccount")} <Link to="/login/">{t("signup.login")}</Link>
 										</FieldDescription>
 									</Field>
 								</FieldGroup>
