@@ -43,7 +43,9 @@ function LoginPage() {
 			const data = await loginUser({ username, password });
 			login(data.token, data.role, data.username);
 		} catch (err) {
-			setError(err.response?.data?.message || t("login.failed"));
+			const code = err.response?.data?.code;
+			if (code) setError(t(`errors.${code}`));
+			else setError(err.response?.data?.message || t("login.failed"));
 		} finally {
 			setLoading(false);
 		}
