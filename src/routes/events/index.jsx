@@ -25,6 +25,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { getAllEvents, deleteEvent, updateEvent, createEvent } from "@/services/events";
 import { getAllVenues } from "@/services/venues";
 import ReactSelect from "react-select";
+import { useLanguage } from "@/hooks/LanguageContext";
 
 export const Route = createFileRoute("/events/")({
 	component: EventsPage,
@@ -42,6 +43,29 @@ function EventsPage() {
 	const [globalFilter, setGlobalFilter] = useState("");
 	const [lastUpdated, setLastUpdated] = useState(null);
 	const [venues, setVenues] = useState([]);
+	const { t, resolve, language } = useLanguage(); 
+    const currentLocale = language === 'zh' ? 'zh-HK' : 'en-US';
+
+	const smartResolve = (obj, fieldEn, fieldZh) => {
+        if (!obj) return "";
+        const valEn = obj[fieldEn];
+        const valZh = obj[fieldZh];
+
+        // Define what constitutes "valid" data (excludes "--" and empty strings)
+        const isValid = (v) => v && v !== "--" && v.trim() !== "";
+
+        if (language === 'zh') {
+            // Try Chinese -> Fallback to English -> Fallback to raw Chinese (even if --) -> Fallback to raw English
+            if (isValid(valZh)) return valZh;
+            if (isValid(valEn)) return valEn;
+            return valZh || valEn || "";
+        } else {
+            // Try English -> Fallback to Chinese -> Fallback to raw English -> Fallback to raw Chinese
+            if (isValid(valEn)) return valEn;
+            if (isValid(valZh)) return valZh;
+            return valEn || valZh || "";
+        }
+    };
 
 	const [formData, setFormData] = useState({
 		title: "",
@@ -51,9 +75,10 @@ function EventsPage() {
 		presentor: "",
 		price: "",
 	});
+
 	const venueOptions = venues.map((venue) => ({
 		value: venue._id,
-		label: venue.name,
+		label: resolve(venue, 'name'),
 	}));
 
 	const showError = (title, error) => {
@@ -118,7 +143,7 @@ function EventsPage() {
 	};
 	const handleSave = async () => {
 		if (!formData.title || !formData.venue || !formData.dateTime) {
-			showError("Validation Error", { message: "Title, Venue, and Date & Time are required" });
+			showError(t('events.errValidation'), { message: t('events.errReqFields') });
 			return;
 		}
 
@@ -167,7 +192,7 @@ function EventsPage() {
 			});
 			setLastUpdated(new Date());
 		} catch (error) {
-			showError("Failed to save event", error);
+			showError(t('events.errSave'), error);
 		}
 	};
 
@@ -189,7 +214,7 @@ function EventsPage() {
 			header: ({ column }) => {
 				return (
 					<div className="flex items-center">
-						Event Title
+						{t('events.colTitle')}
 						<Button
 							variant="ghost"
 							className="pl-0"
@@ -200,14 +225,14 @@ function EventsPage() {
 					</div>
 				);
 			},
-			cell: ({ row }) => <div className="max-w-[250px] whitespace-normal break-words">{row.getValue("title")}</div>,
+			cell: ({ row }) => <div className="max-w-[250px] whitespace-normal break-words">{smartResolve(row.original, 'title', 'titleChinese') || t('events.na')}</div>,
 		},
 		{
 			accessorKey: "description",
-			header: "Description",
+			header: t('events.colDesc'),
 			cell: ({ row }) => {
-				const description = row.getValue("description");
-				if (!description) return <span className="text-muted-foreground text-sm">No description</span>;
+				const description = smartResolve(row.original, 'description', 'descriptionChinese');
+				if (!description) return <span className="text-muted-foreground text-sm">{t('events.noDesc')}</span>;
 
 				return (
 					<div className="max-w-[300px] text-sm line-clamp-2" title={description}>
@@ -217,26 +242,26 @@ function EventsPage() {
 			},
 		},
 		{
-			accessorKey: "venue",
-			header: "Venue",
-			cell: ({ row }) => {
-				const venue = row.getValue("venue");
-				const venueName = typeof venue === "string" ? venue : venue?.name || "N/A";
-				return <div className="max-w-[180px] whitespace-normal break-words">{venueName}</div>;
-			},
-		},
+            accessorKey: "venue",
+            header: t('events.colVenue'),
+            cell: ({ row }) => {
+                const venue = row.original.venue;
+                const venueName = typeof venue === "string" ? venue : smartResolve(venue, 'name', 'nameChinese') || t('events.na');
+                return <div className="max-w-[180px] whitespace-normal break-words">{venueName}</div>;
+            },
+        },
 		{
 			accessorKey: "price",
-			header: "Price",
+			header: t('events.colPrice'),
 			cell: ({ row }) => (
-				<div className="max-w-[80px] whitespace-normal break-words text-sm">{row.getValue("price") || "Free"}</div>
+				<div className="max-w-[80px] whitespace-normal break-words text-sm">{resolve(row.original, 'price') || t('events.free')}</div>
 			),
 		},
 		{
 			accessorKey: "presentor",
-			header: "Presenters",
+			header: t('events.colPresenter'),
 			cell: ({ row }) => (
-				<div className="max-w-[150px] whitespace-normal break-words text-sm">{row.getValue("presentor") || "N/A"}</div>
+				<div className="max-w-[150px] whitespace-normal break-words text-sm">{smartResolve(row.original, 'presentor', 'presenterChinese') || t('events.na')}</div>
 			),
 		},
 		{
@@ -244,7 +269,7 @@ function EventsPage() {
 			header: ({ column }) => {
 				return (
 					<div className="flex items-center">
-						Date & Time
+						{t('events.colDate')}
 						<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
 							<ArrowUpDown />
 						</Button>
@@ -252,8 +277,8 @@ function EventsPage() {
 				);
 			},
 			cell: ({ row }) => {
-				const dateTime = row.getValue("dateTime");
-				if (!dateTime) return "N/A";
+				const dateTime = smartResolve(row.original, 'dateTime', 'dateTimeChinese');
+				if (!dateTime) t('events.na');
 				const date = new Date(dateTime);
 
 				if (isNaN(date.getTime())) {
@@ -264,9 +289,9 @@ function EventsPage() {
 				// For valid dates, format compactly on two lines
 				return (
 					<div className="max-w-[120px] text-xs whitespace-nowrap">
-						<span className="block">{date.toLocaleDateString()}</span>
+						<span className="block">{date.toLocaleDateString(currentLocale)}</span>
 						<span className="block text-muted-foreground">
-							{date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+							{date.toLocaleTimeString(currentLocale, { hour: "2-digit", minute: "2-digit" })}
 						</span>
 					</div>
 				);
@@ -274,14 +299,14 @@ function EventsPage() {
 		},
 		{
 			id: "actions",
-			header: "Actions",
+			header: t('events.colActions'),
 			cell: ({ row }) => {
 				const event = row.original;
 				return (
 					<div className="flex gap-2 whitespace-nowrap">
 						<Button size="sm" onClick={() => handleEditClick(event)}>
 							<Pencil className="h-4 w-4" />
-							<span className="ml-1">Update</span>
+							<span className="ml-1">{t('events.btnUpdate')}</span>
 						</Button>
 						<Button
 							size="sm"
@@ -292,7 +317,7 @@ function EventsPage() {
 							}}
 						>
 							<Trash2 className="h-4 w-4" />
-							<span className="ml-1">Delete</span>
+							<span className="ml-1">{t('events.btnDelete')}</span>
 						</Button>
 					</div>
 				);
@@ -315,32 +340,32 @@ function EventsPage() {
 		onGlobalFilterChange: setGlobalFilter,
 	});
 
-	if (loading) return <div className="p-8">Loading...</div>;
+	if (loading) return <div className="p-8">{t('events.loading')}</div>;
 
 	return (
 		<div className="flex flex-col py-6 px-4 sm:px-8 gap-4">
 			<header className="flex flex-col gap-2">
-				<h1 className="text-3xl font-semibold">Event Management</h1>
-				<p className="text-sm text-muted-foreground">Manage cultural events and programmes.</p>
+				<h1 className="text-3xl font-semibold">{t('events.title')}</h1>
+				<p className="text-sm text-muted-foreground">{t('events.subtitle')}</p>
 			</header>
 
 			<div>
 				<div className="flex items-center justify-between py-4 gap-4 flex-wrap">
 					<Button onClick={handleCreateClick}>
-						<Plus /> New Event
+						<Plus /> {t('events.btnNew')}
 					</Button>
 
 					<Input
 						value={table.getState().globalFilter ?? ""}
 						onChange={(e) => table.setGlobalFilter(String(e.target.value))}
-						placeholder="Search events by title"
+						placeholder={t('events.searchPlaceholder')}
 						className="max-w-xs"
 					/>
 
 					<div className="flex items-center gap-4 text-sm text-muted-foreground">
 						{lastUpdated && (
 							<span>
-								Last updated on {lastUpdated.toLocaleDateString()} at {lastUpdated.toLocaleTimeString()}
+								{t('events.lastUpdated')}  {lastUpdated.toLocaleDateString(currentLocale)} {t('events.at')} {lastUpdated.toLocaleTimeString(currentLocale)}
 							</span>
 						)}
 					</div>
@@ -352,13 +377,13 @@ function EventsPage() {
 							onClick={() => table.previousPage()}
 							disabled={!table.getCanPreviousPage()}
 						>
-							Previous
+							 {t('events.btnPrev')}
 						</Button>
 						<span className="text-sm text-muted-foreground">
-							Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+							 {t('events.page')} {table.getState().pagination.pageIndex + 1} {t('events.of')} {table.getPageCount()}
 						</span>
 						<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-							Next
+							{t('events.btnNext')}
 						</Button>
 					</div>
 				</div>
@@ -399,13 +424,13 @@ function EventsPage() {
 
 			<div className="flex items-center justify-end gap-2">
 				<Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-					Previous
+					 {t('events.btnPrev')}
 				</Button>
 				<span className="text-sm text-muted-foreground">
-					Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+					  {t('events.page')} {table.getState().pagination.pageIndex + 1} {t('events.of')} {table.getPageCount()}
 				</span>
 				<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-					Next
+					  {t('events.btnNext')}
 				</Button>
 			</div>
 
@@ -413,15 +438,15 @@ function EventsPage() {
 			<AlertDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
 				<AlertDialogContent className="w-full max-w-2xl">
 					<AlertDialogHeader>
-						<AlertDialogTitle>{editingEvent ? "Edit Event" : "Create Event"}</AlertDialogTitle>
+						<AlertDialogTitle>{editingEvent ? t('events.dlgEditTitle') : t('events.dlgCreateTitle')}</AlertDialogTitle>
 						<AlertDialogDescription>
-							{editingEvent ? "Update event information." : "Add a new cultural event to the database."}
+							 {editingEvent ? t('events.dlgEditDesc') : t('events.dlgCreateDesc')}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<div className="grid gap-4 py-4">
 						<div className="grid grid-cols-4 items-center gap-4">
 							<Label htmlFor="title" className="text-right">
-								Title <span className="text-destructive">*</span>
+								{t('events.lblTitle')} <span className="text-destructive">*</span>
 							</Label>
 							<Input
 								id="title"
@@ -433,7 +458,7 @@ function EventsPage() {
 
 						<div className="grid grid-cols-4 items-center gap-4">
 							<Label htmlFor="venue" className="text-right">
-								Venue <span className="text-destructive">*</span>
+								  {t('events.lblVenue')} <span className="text-destructive">*</span>
 							</Label>
 							<div className="col-span-3">
 								<ReactSelect
@@ -443,7 +468,7 @@ function EventsPage() {
 									onChange={(selectedOption) => {
 										setFormData({ ...formData, venue: selectedOption?.value || "" });
 									}}
-									placeholder="Start typing to search venues..."
+									placeholder={t('events.phVenueSearch')}
 									isClearable
 									isSearchable
 									className="text-sm"
@@ -454,9 +479,9 @@ function EventsPage() {
 									}}
 									noOptionsMessage={({ inputValue }) => {
 										if (!inputValue || inputValue.length < 2) {
-											return "Type at least 2 characters to search...";
+											return t('events.phVenueType');;
 										}
-										return "No venues found";
+										return t('events.phVenueNo');;
 									}}
 									maxMenuHeight={300}
 									styles={{
@@ -472,25 +497,25 @@ function EventsPage() {
 
 						<div className="grid grid-cols-4 items-start gap-4">
 							<Label htmlFor="dateTime" className="text-right pt-2">
-								Date & Time <span className="text-destructive">*</span>
+								 {t('events.lblDate')}  <span className="text-destructive">*</span>
 							</Label>
 							<textarea
 								id="dateTime"
 								value={formData.dateTime}
 								onChange={(e) => setFormData({ ...formData, dateTime: e.target.value })}
-								placeholder="e.g. 18-19/12/2025 (Thu-Fri) 20:30 or 2025-12-15T23:54:00"
+								placeholder={t('events.phDate')}
 								className="col-span-3 min-h-[80px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
 							/>
 						</div>
 
 						<div className="grid grid-cols-4 items-center gap-4">
 							<Label htmlFor="price" className="text-right">
-								Price
+								 {t('events.lblPrice')}
 							</Label>
 							<Input
 								id="price"
 								value={formData.price}
-								placeholder="Leave blank for free events"
+								placeholder={t('events.phPrice')}
 								onChange={(e) => setFormData({ ...formData, price: e.target.value })}
 								className="col-span-3"
 							/>
@@ -498,7 +523,7 @@ function EventsPage() {
 
 						<div className="grid grid-cols-4 items-center gap-4">
 							<Label htmlFor="presenter" className="text-right">
-								Presenters
+								 {t('events.lblPresenter')}
 							</Label>
 							<Input
 								id="presenter"
@@ -510,7 +535,7 @@ function EventsPage() {
 
 						<div className="grid grid-cols-4 items-start gap-4">
 							<Label htmlFor="description" className="text-right pt-2">
-								Description
+								 {t('events.lblDesc')}
 							</Label>
 							<textarea
 								id="description"
@@ -522,9 +547,9 @@ function EventsPage() {
 					</div>
 					<AlertDialogFooter>
 						<Button variant="outline" onClick={handleCloseDialog}>
-							Cancel
+							{t('events.btnCancel')}
 						</Button>
-						<Button onClick={handleSave}>Save</Button>
+						<Button onClick={handleSave}>{t('events.btnSave')}</Button>
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
@@ -541,15 +566,15 @@ function EventsPage() {
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Confirm delete</AlertDialogTitle>
-						<AlertDialogDescription>Deleting an event is permanent. This cannot be undone.</AlertDialogDescription>
+						<AlertDialogTitle>{t('events.dlgDeleteTitle')}</AlertDialogTitle>
+						<AlertDialogDescription>{t('events.dlgDeleteDesc')}</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-							Cancel
+							 {t('events.btnCancel')}
 						</Button>
 						<Button variant="destructive" onClick={handleDelete}>
-							Delete
+							{t('events.btnDelete')}
 						</Button>
 					</AlertDialogFooter>
 				</AlertDialogContent>

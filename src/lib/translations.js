@@ -53,7 +53,111 @@ export const translations = {
       btn: "Login",
       noAccount: "Don't have an account?",
       signup: "Sign up"
+    },
+
+    users: {
+      title: "User Management",
+      subtitle: "Manage accounts, roles, and credentials.",
+      btnNew: "New User",
+      searchPlaceholder: "Search users by username",
+      tableUsername: "Username",
+      tableEmail: "Email",
+      tableRole: "Role",
+      tableActions: "Actions",
+      roleUser: "User",
+      roleAdmin: "Admin",
+      btnUpdate: "Update",
+      btnDelete: "Delete",
+      btnPrev: "Previous",
+      btnNext: "Next",
+      page:"Page",
+      lastUpdated: "Last updated on",
+      loading: "Loading...",
+      at: "at",
+      of: "of",
+      phSelectRole: "Select a role",
+      noResults: "No results.",
+      
+      // Dialogs
+      dlgEditTitle: "Edit User",
+      dlgCreateTitle: "Create User",
+      dlgEditDesc: "Update profile data and credentials.",
+      dlgCreateDesc: "Add a new user to the database.",
+      dlgDeleteTitle: "Confirm delete",
+      dlgDeleteDesc: "Deleting a user is permanent. This cannot be undone.",
+      lblUsername: "Username",
+      lblEmail: "Email",
+      lblPassword: "Password",
+      lblRole: "Role",
+      phPasswordKeep: "Leave blank to keep current password",
+      phSelectRole: "Select a role",
+      btnCancel: "Cancel",
+      btnSave: "Save",
+      btnConfirmDelete: "Delete"
+    },
+    events: {
+      title: "Event Management",
+      subtitle: "Manage cultural events and programmes.",
+      btnNew: "New Event",
+      searchPlaceholder: "Search events by title",
+      
+      // Table Columns
+      colTitle: "Event Title",
+      colDesc: "Description",
+      colVenue: "Venue",
+      colPrice: "Price",
+      colPresenter: "Presenters",
+      colDate: "Date & Time",
+      colActions: "Actions",
+
+      // Table Cells & Status
+      noDesc: "No description",
+      free: "Free",
+      na: "N/A",
+      loading: "Loading...",
+      noResults: "No results.",
+      lastUpdated: "Last updated on",
+      at: "at",
+      page: "Page",
+      of: "of",
+      
+      // Buttons
+      btnUpdate: "Update",
+      btnDelete: "Delete",
+      btnPrev: "Previous",
+      btnNext: "Next",
+      btnCancel: "Cancel",
+      btnSave: "Save",
+      
+      // Dialogs
+      dlgEditTitle: "Edit Event",
+      dlgCreateTitle: "Create Event",
+      dlgEditDesc: "Update event information.",
+      dlgCreateDesc: "Add a new cultural event to the database.",
+      dlgDeleteTitle: "Confirm delete",
+      dlgDeleteDesc: "Deleting an event is permanent. This cannot be undone.",
+      
+      // Form
+      lblTitle: "Title",
+      lblVenue: "Venue",
+      lblDate: "Date & Time",
+      lblPrice: "Price",
+      lblPresenter: "Presenters",
+      lblDesc: "Description",
+      phVenueSearch: "Start typing to search venues...",
+      phVenueType: "Type at least 2 characters to search...",
+      phVenueNo: "No venues found",
+      phDate: "e.g. 18-19/12/2025 (Thu-Fri) 20:30",
+      phPrice: "Leave blank for free events",
+      
+      // Errors
+      errValidation: "Validation Error",
+      errReqFields: "Title, Venue, and Date & Time are required",
+      errFetch: "Failed to fetch events",
+      errDelete: "Failed to delete event",
+      errSave: "Failed to save event"
     }
+  
   },
   zh: {
     nav: {
@@ -108,6 +212,109 @@ export const translations = {
       btn: "登入",
       noAccount: "還沒有帳號？",
       signup: "註冊"
+    },
+
+    users: {
+      title: "用戶管理",
+      subtitle: "管理帳戶、角色和憑證。",
+      btnNew: "新增用戶",
+      searchPlaceholder: "搜尋用戶名",
+      tableUsername: "用戶名",
+      tableEmail: "電郵",
+      tableRole: "角色",
+      page:"頁面",
+      tableActions: "操作",
+      roleUser: "一般用戶",
+      roleAdmin: "管理員",
+      btnUpdate: "更新",
+      btnDelete: "刪除",
+      btnPrev: "上一頁",
+      btnNext: "下一頁",
+      lastUpdated: "最後更新於",
+      loading: "載入中...",
+      noResults: "沒有結果。",
+      at: "於",  
+      of: "共", // You can also use "/" for a cleaner look (e.g., 1 / 10)
+      phSelectRole: "選擇角色",
+
+      // Dialogs
+      dlgEditTitle: "編輯用戶",
+      dlgCreateTitle: "新增用戶",
+      dlgEditDesc: "更新個人資料和憑證。",
+      dlgCreateDesc: "新增用戶至資料庫。",
+      dlgDeleteTitle: "確認刪除",
+      dlgDeleteDesc: "刪除用戶是永久性的，無法復原。",
+      lblUsername: "用戶名",
+      lblEmail: "電郵",
+      lblPassword: "密碼",
+      lblRole: "角色",
+      phPasswordKeep: "留空以保留當前密碼",
+      phSelectRole: "選擇角色",
+      btnCancel: "取消",
+      btnSave: "儲存",
+      btnConfirmDelete: "刪除"
+    },
+    events: {
+      title: "活動管理",
+      subtitle: "管理文化活動和節目。",
+      btnNew: "新增活動",
+      searchPlaceholder: "搜尋活動標題",
+      
+      // Table Columns
+      colTitle: "活動標題",
+      colDesc: "描述",
+      colVenue: "場地",
+      colPrice: "價格",
+      colPresenter: "主辦單位",
+      colDate: "日期與時間",
+      colActions: "操作",
+
+      // Table Cells & Status
+      noDesc: "沒有描述",
+      free: "免費",
+      na: "不適用",
+      loading: "載入中...",
+      noResults: "沒有結果。",
+      lastUpdated: "最後更新於",
+      at: "於",
+      page: "頁面",
+      of: "共",
+      
+      // Buttons
+      btnUpdate: "更新",
+      btnDelete: "刪除",
+      btnPrev: "上一頁",
+      btnNext: "下一頁",
+      btnCancel: "取消",
+      btnSave: "儲存",
+      
+      // Dialogs
+      dlgEditTitle: "編輯活動",
+      dlgCreateTitle: "新增活動",
+      dlgEditDesc: "更新活動資料。",
+      dlgCreateDesc: "新增文化活動至資料庫。",
+      dlgDeleteTitle: "確認刪除",
+      dlgDeleteDesc: "刪除活動是永久性的，無法復原。",
+      
+      // Form
+      lblTitle: "標題",
+      lblVenue: "場地",
+      lblDate: "日期與時間",
+      lblPrice: "價格",
+      lblPresenter: "主辦單位",
+      lblDesc: "描述",
+      phVenueSearch: "輸入以搜尋場地...",
+      phVenueType: "輸入至少 2 個字元以搜尋...",
+      phVenueNo: "找不到場地",
+      phDate: "例如：18-19/12/2025 (四-五) 20:30",
+      phPrice: "免費活動請留空",
+      
+      // Errors
+      errValidation: "驗證錯誤",
+      errReqFields: "標題、場地和日期時間為必填項",
+      errFetch: "無法取得活動列表",
+      errDelete: "無法刪除活動",
+      errSave: "無法儲存活動"
     }
   }
 };
