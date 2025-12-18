@@ -278,6 +278,34 @@ function UsersPage() {
 						</Button>
 					</div>
 				</div>
+				{/* Mobile: Last Updated + Top Pagination */}
+				<div className="flex md:hidden flex-col gap-3 mb-4">
+					{/* Last Updated */}
+					{lastUpdated && (
+						<div className="text-xs text-muted-foreground text-center">
+							{t("users.lastUpdated")} {lastUpdated.toLocaleDateString(currentLocale)} {t("users.at")}{" "}
+							{lastUpdated.toLocaleTimeString(currentLocale)}
+						</div>
+					)}
+
+					{/* Top Pagination */}
+					<div className="flex items-center justify-center gap-2">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => table.previousPage()}
+							disabled={!table.getCanPreviousPage()}
+						>
+							{t("users.btnPrev")}
+						</Button>
+						<span className="text-sm text-muted-foreground">
+							{t("users.page")} {table.getState().pagination.pageIndex + 1} {t("users.of")} {table.getPageCount()}
+						</span>
+						<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+							{t("users.btnNext")}
+						</Button>
+					</div>
+				</div>
 				{/* Mobile Card Layout */}
 				<div className="grid grid-cols-1 gap-4 md:hidden mb-6">
 					{table.getRowModel().rows?.length ? (
