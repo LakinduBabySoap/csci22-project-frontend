@@ -4,7 +4,7 @@ import { ThemeProvider, useTheme } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/mode-toggle";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useRouter } from "@tanstack/react-router";
-import { Menu, Moon, Sun } from "lucide-react"; 
+import { Menu, Moon, Sun, Languages } from "lucide-react"; 
 import {
 	DropdownMenu,
 	DropdownMenuTrigger,
@@ -26,13 +26,15 @@ export const Route = createRootRoute({
 });
 
 function LanguageToggle() {
-  const { language, toggleLanguage } = useLanguage();
+  const { toggleLanguage } = useLanguage();
   return (
     <button 
       onClick={toggleLanguage}
-      className="px-3 py-1 text-xs font-semibold border rounded hover:bg-muted"
+      className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background px-0 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+      title="Switch Language"
     >
-      {language === "en" ? "中文" : "English"}
+      <Languages className="h-[1.2rem] w-[1.2rem] transition-all" />
+      <span className="sr-only">Toggle language</span>
     </button>
   );
 }
