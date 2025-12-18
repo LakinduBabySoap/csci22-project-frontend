@@ -19,7 +19,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { X, MapPin, Calendar, MessageSquare, Send } from 'lucide-react'
+import { X, MapPin, Calendar, MessageSquare, Send, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react'
 
 
 export const Route = createFileRoute("/")({
@@ -156,8 +156,6 @@ function HomePage() {
     };
 
 
-	
-
 	const handleAddComment = async () => {
         if (!newComment.trim()) return;
         
@@ -220,6 +218,12 @@ function HomePage() {
 		})
 		return Array.from(set).sort()
 	}, [locations]);
+
+	const getSortIcon = (key) => {
+    if (sortingState.key !== key) return <ArrowUpDown className="h-3 w-3 ml-1 text-muted-foreground" />;
+    if (sortingState.direction === 'asc') return <ArrowUp className="h-3 w-3 ml-1" />;
+    return <ArrowDown className="h-3 w-3 ml-1" />;
+};
 	
 	const sortedLocations = useMemo(() => {
 		// If a location is selected, ONLY return that location
@@ -324,17 +328,59 @@ function HomePage() {
 				<select
 					value={selectedDistrict}
 					onChange={(e) => setSelectedDistrict(e.target.value)}
-					className="w-full sm:max-w-xs rounded border px-3 py-2 text-sm"
+					className={`
+        w-full sm:max-w-xs rounded border px-3 py-2 text-sm bg-background
+        ${selectedDistrict === "" ? "text-muted-foreground" : "text-foreground"}
+    `}
 					disabled={!!selectedVenue}
 				>
 					<option value="">{t('home.allDistricts') || "All districts"}</option>
-					{districtOptions.map((district) => (
-        <option key={district} value={district}>
-            {translateLocation(district)}
-        </option>
+						{districtOptions.map((district) => (
+					<option key={district} value={district}>
+						{translateLocation(district)}
+					</option>
     ))}
 				</select>
 			</div>
+
+			<div className="flex items-center gap-2 mb-4 md:hidden overflow-x-auto pb-2">
+    <span className="text-sm text-muted-foreground whitespace-nowrap">
+        {t('home.sortBy') || "Sort by:"}
+    </span>
+    
+    {/* Name Sort Button */}
+    <Button 
+        variant={sortingState.key === 'name' ? "secondary" : "outline"} 
+        size="sm" 
+        onClick={() => handleSort('name')}
+        className="h-8 text-xs"
+    >
+        {t('home.headerName')}
+        {getSortIcon('name')}
+    </Button>
+
+    {/* Events Sort Button */}
+    <Button 
+        variant={sortingState.key === 'events' ? "secondary" : "outline"} 
+        size="sm" 
+        onClick={() => handleSort('events')}
+        className="h-8 text-xs"
+    >
+        {t('home.headerEvents')}
+        {getSortIcon('events')}
+    </Button>
+
+    {/* Distance Sort Button */}
+    <Button 
+        variant={sortingState.key === 'distance' ? "secondary" : "outline"} 
+        size="sm" 
+        onClick={() => handleSort('distance')}
+        className="h-8 text-xs"
+    >
+        {t('home.headerDistance')}
+        {getSortIcon('distance')}
+    </Button>
+</div>
 			
 			<div className="grid grid-cols-1 gap-4 md:hidden mb-6">
     {sortedLocations.map((row) => (
