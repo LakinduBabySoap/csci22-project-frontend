@@ -2,7 +2,6 @@
 export const translations = {
 	en: {
 		nav: {
-			title: "Good Website",
 			events: "Event List",
 			users: "User List",
 			logout: "Log Out",
@@ -181,7 +180,6 @@ export const translations = {
 
 	zh: {
 		nav: {
-			title: "優質網站",
 			events: "活動列表",
 			users: "用戶列表",
 			logout: "登出",

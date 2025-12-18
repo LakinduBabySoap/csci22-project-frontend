@@ -1,10 +1,9 @@
 import { createRootRoute, Outlet, Link, redirect } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { ThemeProvider, useTheme } from "@/components/theme-provider";
-import { ModeToggle } from "@/components/mode-toggle";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useRouter } from "@tanstack/react-router";
-import { Menu, Moon, Sun, Languages } from "lucide-react";
+import { Moon, Sun, Languages } from "lucide-react";
 import {
 	DropdownMenu,
 	DropdownMenuTrigger,
@@ -93,9 +92,10 @@ function InnerRoot() {
 			<div className="flex h-screen flex-col">
 				<header className="grid grid-cols-[auto_1fr_auto] items-center border-b bg-background px-4 py-3">
 					{/* Logo */}
-					<div className="items-center">
-						<Link to="/" className="text-xl font-bold text-foreground">
-							{t("nav.title")}
+					<div className="flex flex-row">
+						<Link to="/" className="flex items-center text-2xl font-bold">
+							<img src="/eventure_logo.svg" alt="Logo" className="h-10 w-10 object-contain dark:invert" />
+							<span className="hidden md:block">Eventure</span>
 						</Link>
 					</div>
 

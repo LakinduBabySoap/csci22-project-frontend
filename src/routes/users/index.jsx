@@ -42,7 +42,7 @@ function UsersPage() {
 	const [globalFilter, setGlobalFilter] = useState("");
 	const [lastUpdated, setLastUpdated] = useState(null);
 	const { t, language } = useLanguage();
-	const currentLocale = language === 'zh' ? 'zh-HK' : 'en-US';
+	const currentLocale = language === "zh" ? "zh-HK" : "en-US";
 
 	const [formData, setFormData] = useState({
 		username: "",
@@ -148,7 +148,7 @@ function UsersPage() {
 			header: ({ column }) => {
 				return (
 					<div className="flex items-center">
-						{t('users.tableUsername')}
+						{t("users.tableUsername")}
 						<Button
 							variant="ghost"
 							className="pl-0"
@@ -165,7 +165,7 @@ function UsersPage() {
 			header: ({ column }) => {
 				return (
 					<div className="flex items-center">
-						{t('users.tableEmail')}
+						{t("users.tableEmail")}
 						<Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
 							<ArrowUpDown />
 						</Button>
@@ -175,22 +175,22 @@ function UsersPage() {
 		},
 		{
 			accessorKey: "role",
-			header: t('users.tableRole'),
+			header: t("users.tableRole"),
 			cell: ({ row }) => {
-                const roleValue = row.getValue("role");
-                const displayRole = roleValue === 'admin' ? t('users.roleAdmin') : t('users.roleUser');
-                return <div className="capitalize">{displayRole}</div>;
-            },
+				const roleValue = row.getValue("role");
+				const displayRole = roleValue === "admin" ? t("users.roleAdmin") : t("users.roleUser");
+				return <div className="capitalize">{displayRole}</div>;
+			},
 		},
 		{
 			id: "actions",
-			header: t('users.tableActions'),
+			header: t("users.tableActions"),
 			cell: ({ row }) => {
 				const user = row.original;
 				return (
 					<div className="flex gap-2">
 						<Button size="sm" onClick={() => handleEditClick(user)}>
-							<Pencil /> {t('users.btnUpdate')}
+							<Pencil /> {t("users.btnUpdate")}
 						</Button>
 						<Button
 							size="sm"
@@ -200,7 +200,7 @@ function UsersPage() {
 								setIsDeleteDialogOpen(true);
 							}}
 						>
-							<Trash2 /> {t('users.btnDelete')}
+							<Trash2 /> {t("users.btnDelete")}
 						</Button>
 					</div>
 				);
@@ -223,30 +223,29 @@ function UsersPage() {
 		onGlobalFilterChange: setGlobalFilter,
 	});
 
-	if (loading) return <div className="p-8">{t('users.loading')}</div>;
+	if (loading) return <div className="p-8">{t("users.loading")}</div>;
 
 	return (
 		<div className="flex flex-col py-6 px-4 sm:px-8 gap-4">
 			<header className="flex flex-col gap-2">
-				<h1 className="text-3xl font-semibold">{t('users.title')}</h1>
-				<p className="text-sm text-muted-foreground">{t('users.subtitle')}</p>
+				<h1 className="text-3xl font-semibold">{t("users.title")}</h1>
+				<p className="text-sm text-muted-foreground">{t("users.subtitle")}</p>
 			</header>
 
 			{/* User Table */}
 			<div>
 				{/* Top Bar: New User Button, Search, Last Updated, Pagination */}
-				{/* Top Bar: New User Button, Search, Last Updated, Pagination */}
 				<div className="flex items-center justify-between py-4 gap-4">
 					{/* Left: New User + Search */}
 					<div className="flex items-center gap-4">
 						<Button onClick={handleCreateClick}>
-							<Plus /> {t('users.btnNew')}
+							<Plus /> {t("users.btnNew")}
 						</Button>
 
 						<Input
 							value={table.getState().globalFilter ?? ""}
 							onChange={(e) => table.setGlobalFilter(String(e.target.value))}
-							placeholder={t('users.searchPlaceholder')}
+							placeholder={t("users.searchPlaceholder")}
 							className="w-64"
 						/>
 					</div>
@@ -255,7 +254,8 @@ function UsersPage() {
 					<div className="flex items-center text-sm text-muted-foreground">
 						{lastUpdated && (
 							<span>
-								{t('users.lastUpdated')} {lastUpdated.toLocaleDateString()} {t('users.at')} {lastUpdated.toLocaleTimeString()}
+								{t("users.lastUpdated")} {lastUpdated.toLocaleDateString()} {t("users.at")}{" "}
+								{lastUpdated.toLocaleTimeString()}
 							</span>
 						)}
 					</div>
@@ -268,13 +268,13 @@ function UsersPage() {
 							onClick={() => table.previousPage()}
 							disabled={!table.getCanPreviousPage()}
 						>
-							{t('users.btnPrev')}
+							{t("users.btnPrev")}
 						</Button>
 						<span className="text-sm text-muted-foreground">
-							{t('users.page')} {table.getState().pagination.pageIndex + 1} {t('users.of')} {table.getPageCount()}
+							{t("users.page")} {table.getState().pagination.pageIndex + 1} {t("users.of")} {table.getPageCount()}
 						</span>
 						<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-							{t('users.btnNext')}
+							{t("users.btnNext")}
 						</Button>
 					</div>
 				</div>
@@ -307,7 +307,7 @@ function UsersPage() {
 							) : (
 								<TableRow>
 									<TableCell colSpan={columns.length} className="h-24 text-center">
-										{t('users.noResults')}
+										{t("users.noResults")}
 									</TableCell>
 								</TableRow>
 							)}
@@ -317,13 +317,13 @@ function UsersPage() {
 			</div>
 			<div className="flex items-center justify-end gap-2">
 				<Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-					{t('users.btnPrev')}
+					{t("users.btnPrev")}
 				</Button>
 				<span className="text-sm text-muted-foreground">
-					{t('users.page')} {table.getState().pagination.pageIndex + 1} {t('users.of')} {table.getPageCount()}
+					{t("users.page")} {table.getState().pagination.pageIndex + 1} {t("users.of")} {table.getPageCount()}
 				</span>
 				<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-					{t('users.btnNext')}
+					{t("users.btnNext")}
 				</Button>
 			</div>
 
@@ -331,15 +331,15 @@ function UsersPage() {
 			<AlertDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
 				<AlertDialogContent className="w-full max-w-2xl">
 					<AlertDialogHeader>
-						<AlertDialogTitle>{editingUser ? t('users.dlgEditTitle') : t('users.dlgCreateTitle')}</AlertDialogTitle>
+						<AlertDialogTitle>{editingUser ? t("users.dlgEditTitle") : t("users.dlgCreateTitle")}</AlertDialogTitle>
 						<AlertDialogDescription>
-							{editingUser ? t('users.dlgEditDesc') : t('users.dlgCreateDesc')}
+							{editingUser ? t("users.dlgEditDesc") : t("users.dlgCreateDesc")}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<div className="grid gap-4 py-4">
 						<div className="grid grid-cols-4 items-center gap-4">
 							<Label htmlFor="username" className="text-right">
-								{t('users.lblUsername')}
+								{t("users.lblUsername")}
 							</Label>
 							<Input
 								id="username"
@@ -350,7 +350,7 @@ function UsersPage() {
 						</div>
 						<div className="grid grid-cols-4 items-center gap-4">
 							<Label htmlFor="email" className="text-right">
-								 {t('users.lblEmail')}
+								{t("users.lblEmail")}
 							</Label>
 							<Input
 								id="email"
@@ -362,12 +362,12 @@ function UsersPage() {
 						</div>
 						<div className="grid grid-cols-4 items-center gap-4">
 							<Label htmlFor="password" className="text-right">
-								{t('users.lblPassword')}
+								{t("users.lblPassword")}
 							</Label>
 							<Input
 								id="password"
 								type="password"
-								placeholder={editingUser ? t('users.phPasswordKeep') : ""}
+								placeholder={editingUser ? t("users.phPasswordKeep") : ""}
 								value={formData.password}
 								onChange={(e) =>
 									setFormData({
@@ -380,24 +380,24 @@ function UsersPage() {
 						</div>
 						<div className="grid grid-cols-4 items-center gap-4">
 							<Label htmlFor="role" className="text-right">
-								{t('users.lblRole')}
+								{t("users.lblRole")}
 							</Label>
 							<Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
 								<SelectTrigger className="col-span-3">
 									<SelectValue placeholder="Select a role" />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value="user">{t('users.roleUser')}</SelectItem>
-									<SelectItem value="admin">{t('users.roleAdmin')}</SelectItem>
+									<SelectItem value="user">{t("users.roleUser")}</SelectItem>
+									<SelectItem value="admin">{t("users.roleAdmin")}</SelectItem>
 								</SelectContent>
 							</Select>
 						</div>
 					</div>
 					<AlertDialogFooter>
 						<Button variant="outline" onClick={handleCloseDialog}>
-							{t('users.btnCancel')}
+							{t("users.btnCancel")}
 						</Button>
-						<Button onClick={handleSave}>{t('users.btnSave')}</Button>
+						<Button onClick={handleSave}>{t("users.btnSave")}</Button>
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
@@ -414,15 +414,15 @@ function UsersPage() {
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>{t('users.dlgDeleteTitle')}</AlertDialogTitle>
-						<AlertDialogDescription>{t('users.dlgDeleteDesc')}</AlertDialogDescription>
+						<AlertDialogTitle>{t("users.dlgDeleteTitle")}</AlertDialogTitle>
+						<AlertDialogDescription>{t("users.dlgDeleteDesc")}</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-							 {t('users.btnCancel')}
+							{t("users.btnCancel")}
 						</Button>
 						<Button variant="destructive" onClick={handleDelete}>
-							{t('users.btnConfirmDelete')}
+							{t("users.btnConfirmDelete")}
 						</Button>
 					</AlertDialogFooter>
 				</AlertDialogContent>

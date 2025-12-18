@@ -2,12 +2,10 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState, useMemo, useRef } from "react";
 import { getVenueComments, addVenueComment } from "@/services/comments";
 import { getAllVenues, addFavoriteVenue, removeFavoriteVenue, getFavoriteVenues } from "@/services/venues";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { AlertCircleIcon } from "lucide-react";
 import MapComponent from "@/components/mapView.jsx";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useLanguage } from "@/hooks/LanguageContext";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -290,7 +288,7 @@ function HomePage() {
 			className={`min-h-screen bg-background p-4 transition-all duration-300 ${selectedVenue ? "pb-[60vh] md:pb-24" : "pb-24"}`}
 		>
 			<div className="flex justify-between items-center mb-4">
-				<h1 className="text-2xl font-bold">{t("home.title")}</h1>
+				<h1 className="text-xl font-bold">{t("home.title")}</h1>
 			</div>
 
 			<div className="mb-4 flex flex-col gap-3 sm:flex-row">
