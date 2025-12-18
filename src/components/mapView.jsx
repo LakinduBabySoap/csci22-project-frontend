@@ -38,6 +38,7 @@ export default function MapComponent({
 	onMarkerClick = () => {},
 	language = "en",
 	resolve = null,
+	userLocation = null,
 }) {
 	const navigate = useNavigate();
 	const API_KEY = import.meta.env.VITE_MAP_API_KEY;
@@ -99,6 +100,20 @@ export default function MapComponent({
 							</AdvancedMarker>
 						);
 					})}
+
+					{userLocation && (
+						<AdvancedMarker
+							position={{ lat: userLocation.lat, lng: userLocation.lng }}
+							title="You are here"
+							zIndex={1001} // High zIndex ensures it stays on top
+						>
+							<Pin
+								background={"#10B981"} // Green color to distinguish from venues
+								glyphColor={"#FFF"}
+								borderColor={"#FFF"}
+							/>
+						</AdvancedMarker>
+					)}
 				</Map>
 			</APIProvider>
 		</div>
