@@ -235,10 +235,10 @@ function UsersPage() {
 			{/* User Table */}
 			<div>
 				{/* Top Bar: New User Button, Search, Last Updated, Pagination */}
-				<div className="flex items-center justify-between py-4 gap-4">
+				<div className="flex flex-col md:flex-row items-start md:items-center justify-between py-4 gap-4">
 					{/* Left: New User + Search */}
-					<div className="flex items-center gap-4">
-						<Button onClick={handleCreateClick}>
+					<div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full md:w-auto">
+						<Button onClick={handleCreateClick} className="w-full sm:w-auto">
 							<Plus /> {t("users.btnNew")}
 						</Button>
 
@@ -246,22 +246,22 @@ function UsersPage() {
 							value={table.getState().globalFilter ?? ""}
 							onChange={(e) => table.setGlobalFilter(String(e.target.value))}
 							placeholder={t("users.searchPlaceholder")}
-							className="w-64"
+							className="w-full sm:w-64"
 						/>
 					</div>
 
-					{/* Center: Last Updated */}
-					<div className="flex items-center text-sm text-muted-foreground">
+					{/* Center: Last Updated - Hidden on mobile */}
+					<div className="hidden lg:flex items-center text-sm text-muted-foreground">
 						{lastUpdated && (
 							<span>
-								{t("users.lastUpdated")} {lastUpdated.toLocaleDateString()} {t("users.at")}{" "}
-								{lastUpdated.toLocaleTimeString()}
+								{t("users.lastUpdated")} {lastUpdated.toLocaleDateString(currentLocale)} {t("users.at")}{" "}
+								{lastUpdated.toLocaleTimeString(currentLocale)}
 							</span>
 						)}
 					</div>
 
-					{/* Right: Pagination */}
-					<div className="flex items-center space-x-2">
+					{/* Right: Pagination - Hidden on mobile, shown in separate section */}
+					<div className="hidden md:flex items-center space-x-2">
 						<Button
 							variant="outline"
 							size="sm"
@@ -278,20 +278,88 @@ function UsersPage() {
 						</Button>
 					</div>
 				</div>
+				{/* Mobile Card Layout */}
+				<div className="grid grid-cols-1 gap-4 md:hidden mb-6">
+					{table.getRowModel().rows?.length ? (
+						table.getRowModel().rows.map((row) => {
+							const user = row.original;
+							const displayRole = user.role === "admin" ? t("users.roleAdmin") : t("users.roleUser");
 
-				{/* Table */}
-				<div className="overflow-hidden rounded-md border">
+							return (
+								<div
+									key={user._id}
+									className="rounded-lg border p-4 shadow-sm bg-card hover:bg-muted/50 transition-colors"
+								>
+									<div className="flex justify-between items-start mb-3">
+										<div className="flex-1">
+											<h3 className="font-bold text-base">{user.username}</h3>
+											<p className="text-sm text-muted-foreground mt-1">{user.email || "No email"}</p>
+										</div>
+										<div className="ml-2">
+											<span
+												className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+													user.role === "admin"
+														? "bg-primary/10 text-primary"
+														: "bg-secondary text-secondary-foreground"
+												}`}
+											>
+												{displayRole}
+											</span>
+										</div>
+									</div>
+									<div className="flex gap-2 mt-3">
+										<Button size="sm" onClick={() => handleEditClick(user)} className="flex-1">
+											<Pencil className="h-3 w-3 mr-1" />
+											{t("users.btnUpdate")}
+										</Button>
+										<Button
+											size="sm"
+											variant="destructive"
+											onClick={() => {
+												setDeletingUser(user);
+												setIsDeleteDialogOpen(true);
+											}}
+											className="flex-1"
+										>
+											<Trash2 className="h-3 w-3 mr-1" />
+											{t("users.btnDelete")}
+										</Button>
+									</div>
+								</div>
+							);
+						})
+					) : (
+						<div className="text-center py-12 text-muted-foreground">{t("users.noResults")}</div>
+					)}
+				</div>
+				{/* Mobile Pagination */}
+				<div className="flex md:hidden items-center justify-center gap-2 mb-4">
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => table.previousPage()}
+						disabled={!table.getCanPreviousPage()}
+					>
+						{t("users.btnPrev")}
+					</Button>
+					<span className="text-sm text-muted-foreground">
+						{t("users.page")} {table.getState().pagination.pageIndex + 1} {t("users.of")} {table.getPageCount()}
+					</span>
+					<Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+						{t("users.btnNext")}
+					</Button>
+				</div>
+				{/* Desktop Table - Hidden on mobile */}
+				<div className="hidden md:block overflow-hidden rounded-md border">
 					<Table>
 						<TableHeader>
 							{table.getHeaderGroups().map((headerGroup) => (
 								<TableRow key={headerGroup.id}>
-									{headerGroup.headers.map((header) => {
-										return (
-											<TableHead key={header.id}>
-												{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-											</TableHead>
-										);
-									})}
+									{headerGroup.headers.map((header) => (
+										<TableHead key={header.id}>
+											{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+										</TableHead>
+									))}
 								</TableRow>
 							))}
 						</TableHeader>
@@ -315,7 +383,8 @@ function UsersPage() {
 					</Table>
 				</div>
 			</div>
-			<div className="flex items-center justify-end gap-2">
+			{/* Desktop Pagination (below table) */}
+			<div className="hidden md:flex items-center justify-end gap-2">
 				<Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
 					{t("users.btnPrev")}
 				</Button>
@@ -326,7 +395,6 @@ function UsersPage() {
 					{t("users.btnNext")}
 				</Button>
 			</div>
-
 			{/* Add/Edit User Dialog */}
 			<AlertDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
 				<AlertDialogContent className="w-full max-w-2xl">
