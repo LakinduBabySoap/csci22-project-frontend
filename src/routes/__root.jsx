@@ -4,7 +4,7 @@ import { ThemeProvider, useTheme } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/mode-toggle";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useRouter } from "@tanstack/react-router";
-import { Menu, Moon, Sun, Languages } from "lucide-react"; 
+import { Menu, Moon, Sun, Languages } from "lucide-react";
 import {
 	DropdownMenu,
 	DropdownMenuTrigger,
@@ -13,7 +13,7 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { LanguageProvider, useLanguage } from "@/hooks/LanguageContext"; 
+import { LanguageProvider, useLanguage } from "@/hooks/LanguageContext";
 
 export const Route = createRootRoute({
 	component: RootComponent,
@@ -26,56 +26,50 @@ export const Route = createRootRoute({
 });
 
 function LanguageToggle() {
-  const { toggleLanguage } = useLanguage();
-  return (
-    <button 
-      onClick={toggleLanguage}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background px-0 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-      title="Switch Language"
-    >
-      <Languages className="h-[1.2rem] w-[1.2rem] transition-all" />
-      <span className="sr-only">Toggle language</span>
-    </button>
-  );
+	const { toggleLanguage } = useLanguage();
+	return (
+		<button
+			onClick={toggleLanguage}
+			className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background px-0 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
+			title="Switch Language"
+		>
+			<Languages className="h-[1.2rem] w-[1.2rem] transition-all" />
+			<span className="sr-only">Toggle language</span>
+		</button>
+	);
 }
 
 function LocalizedModeToggle() {
-  const { setTheme } = useTheme();
-  const { language } = useLanguage();
+	const { setTheme } = useTheme();
+	const { language } = useLanguage();
 
-  const t = (en, zh) => (language === "en" ? en : zh);
+	const t = (en, zh) => (language === "en" ? en : zh);
 
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background px-0 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
-          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
-          {t("Light", "亮色")}
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
-          {t("Dark", "暗色")}
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
-          {t("System", "系統")}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+				<button className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background px-0 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
+					<Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+					<Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+					<span className="sr-only">Toggle theme</span>
+				</button>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="end">
+				<DropdownMenuItem onClick={() => setTheme("light")}>{t("Light", "亮色")}</DropdownMenuItem>
+				<DropdownMenuItem onClick={() => setTheme("dark")}>{t("Dark", "暗色")}</DropdownMenuItem>
+				<DropdownMenuItem onClick={() => setTheme("system")}>{t("System", "系統")}</DropdownMenuItem>
+			</DropdownMenuContent>
+		</DropdownMenu>
+	);
 }
 
 function RootComponent() {
-  // Wrap content inside LanguageProvider
-  return (
-    <LanguageProvider> 
-       <InnerRoot />
-    </LanguageProvider>
-  );
+	// Wrap content inside LanguageProvider
+	return (
+		<LanguageProvider>
+			<InnerRoot />
+		</LanguageProvider>
+	);
 }
 
 function InnerRoot() {
@@ -91,7 +85,7 @@ function InnerRoot() {
 	const handleLogout = async () => {
 		logout();
 		await router.invalidate();
-		navigate({ to: "/login/" });
+		navigate({ to: "/" });
 	};
 
 	return (
@@ -101,44 +95,48 @@ function InnerRoot() {
 					{/* Logo */}
 					<div className="items-center">
 						<Link to="/" className="text-xl font-bold text-foreground">
-							{t('nav.title')}
+							{t("nav.title")}
 						</Link>
 					</div>
 
 					{/* Desktop Nav bar - Hidden on Mobile */}
 					<div className="flex items-center justify-center">
-					<div className="hidden md:flex items-center justify-center gap-6">
-						{isAdmin && (
-							<nav className="flex items-center gap-8">
-								<Link
-									to="/events/"
-									className="text-sm font-medium text-foreground/80 hover:text-foreground hover:underline"
-								>
-									{t('nav.events')}
-								</Link>
-								<Link
-									to="/users/"
-									className="text-sm font-medium text-foreground/80 hover:text-foreground hover:underline"
-								>
-									{t('nav.users')}
-								</Link>
-							</nav>
-						)}
-					</div>
-					<div className="md:hidden">
+						<div className="hidden md:flex items-center justify-center gap-6">
+							{isAdmin && (
+								<nav className="flex items-center gap-8">
+									<Link
+										to="/events/"
+										className="text-sm font-medium text-foreground/80 hover:text-foreground hover:underline"
+									>
+										{t("nav.events")}
+									</Link>
+									<Link
+										to="/users/"
+										className="text-sm font-medium text-foreground/80 hover:text-foreground hover:underline"
+									>
+										{t("nav.users")}
+									</Link>
+								</nav>
+							)}
+						</div>
+						<div className="md:hidden">
 							{isAdmin && (
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
 										<button className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground">
-											{language === 'en' ? 'Management' : '管理'}
+											{language === "en" ? "Management" : "管理"}
 										</button>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="center">
 										<DropdownMenuItem asChild>
-											<Link to="/events/" className="w-full cursor-pointer">{t('nav.events')}</Link>
+											<Link to="/events/" className="w-full cursor-pointer">
+												{t("nav.events")}
+											</Link>
 										</DropdownMenuItem>
 										<DropdownMenuItem asChild>
-											<Link to="/users/" className="w-full cursor-pointer">{t('nav.users')}</Link>
+											<Link to="/users/" className="w-full cursor-pointer">
+												{t("nav.users")}
+											</Link>
 										</DropdownMenuItem>
 									</DropdownMenuContent>
 								</DropdownMenu>
@@ -152,7 +150,7 @@ function InnerRoot() {
 							<LanguageToggle />
 							<LocalizedModeToggle />
 						</div>
-						
+
 						{isAuthenticated && (
 							<DropdownMenu>
 								<DropdownMenuTrigger asChild>
@@ -166,7 +164,9 @@ function InnerRoot() {
 								<DropdownMenuContent align="end">
 									<DropdownMenuLabel>{username}</DropdownMenuLabel>
 									<DropdownMenuSeparator />
-									<DropdownMenuItem onSelect={() => navigate({ to: "/profile/" })}>{t("nav.favorites")}</DropdownMenuItem>
+									<DropdownMenuItem onSelect={() => navigate({ to: "/profile/" })}>
+										{t("nav.favorites")}
+									</DropdownMenuItem>
 									<DropdownMenuItem variant="destructive" onSelect={handleLogout}>
 										{t("nav.logout")}
 									</DropdownMenuItem>
