@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { APIProvider, Map, AdvancedMarker, Pin, useMap } from '@vis.gl/react-google-maps';
 import { useNavigate } from '@tanstack/react-router';
 
@@ -36,10 +36,22 @@ export default function MapComponent({
   center = DEFAULT_CENTER, 
   zoom = DEFAULT_ZOOM,
   selectedVenue = null, 
-  onMarkerClick = () => {} 
+  onMarkerClick = () => {} ,
+  language = 'en',
+  resolve = null 
 }) {
   const navigate = useNavigate();
   const API_KEY = import.meta.env.VITE_MAP_API_KEY;
+
+  //const [isReloading, setIsReloading] = useState(false);
+  const prevLanguage = useRef(language);
+
+  useEffect(() => {
+    if (prevLanguage.current !== language) {
+      prevLanguage.current = language;
+      window.location.reload();
+    }
+  }, [language]);
 
   if (!API_KEY) {
     return <div className="p-4 text-red-500">Error: VITE_MAP_API_KEY is missing in .env</div>;
@@ -47,7 +59,10 @@ export default function MapComponent({
 
   return (
     <div className="h-[750px] w-full rounded-md overflow-hidden shadow-md border border-gray-200">
-      <APIProvider apiKey={API_KEY}>
+      <APIProvider key={language} 
+        apiKey={API_KEY} 
+        language={language === 'zh' ? 'zh-HK' : 'en'}>
+        
         <Map
           // [CRITICAL] Add this ID so useMap("main-map") can find it
           id="main-map" 
@@ -64,6 +79,10 @@ export default function MapComponent({
             if (!venue.latitude || !venue.longitude) return null;
             
             const isSelected = selectedVenue?._id === venue._id;
+            
+            const markerTitle = resolve 
+                ? resolve(venue, 'name') 
+                : (language === 'zh' ? (venue.nameChinese || venue.name) : venue.name);
 
             return (
               <AdvancedMarker
@@ -71,6 +90,7 @@ export default function MapComponent({
                 position={{ lat: venue.latitude, lng: venue.longitude }}
                 onClick={() => onMarkerClick(venue)}
                 zIndex={isSelected ? 100 : 1} 
+                title={markerTitle} 
               >
                 <Pin 
                   background={isSelected ? '#2563EB' : '#E11D48'} 

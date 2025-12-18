@@ -6,7 +6,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircleIcon } from "lucide-react";
 import MapComponent from "@/components/mapView.jsx";
 import{useMediaQuery} from "@/hooks/use-media-query";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useLanguage } from "@/hooks/LanguageContext";
 import {
   Sheet,
   SheetContent,
@@ -435,6 +435,8 @@ function HomePage() {
 						venues={sortedLocations} // Pass ALL locations so pins remain visible
 						selectedVenue={selectedVenue} // For zooming
 						onMarkerClick={handleSelectVenue} // For selection
+						language={language}   //for Map language
+    					resolve={resolve}     //for Map language
 					/>
 				</div>
       		</div>
@@ -525,7 +527,7 @@ function HomePage() {
 																<div key={i} className="text-sm">
 																	<div className="flex justify-between items-baseline">
 																		<span className="font-semibold text-xs">{c.user?.username || "Unknown User"}</span>
-																		<span className="text-[10px] text-muted-foreground">{c.date}</span>
+																		<span className="text-[10px] text-muted-foreground">{formatCommentTime(c.createdAt)}</span>
 																	</div>
 																	<p className="text-muted-foreground mt-0.5">{c.text}</p>
 																</div>
@@ -702,6 +704,20 @@ function EventSessions({ dateString, t }) {
             )}
         </div>
     );
+}
+
+function formatCommentTime(isoString) {
+  if (!isoString) return "";
+  const date = new Date(isoString);
+  
+  // Pad numbers with leading zeros (e.g., 5 -> 05)
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
 
 export default HomePage;
