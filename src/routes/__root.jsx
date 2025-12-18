@@ -13,7 +13,7 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { LanguageProvider, useLanguage } from "@/contexts/LanguageContext"; 
+import { LanguageProvider, useLanguage } from "@/hooks/LanguageContext"; 
 
 export const Route = createRootRoute({
 	component: RootComponent,
