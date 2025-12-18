@@ -286,7 +286,7 @@ function HomePage() {
 		});
 
 		return arr;
-	}, [locations, sortingState, searchTerm, maxDistance, language, selectedDistrict]);
+	}, [locations, sortingState, searchTerm, maxDistance, selectedDistrict]);
 
 	const sortLabel = (key) => {
 		if (sortingState.key !== key || !sortingState.direction) return "";
@@ -462,7 +462,7 @@ function HomePage() {
 									<input
 										type="checkbox"
 										checked={favoriteIds.includes(row._id)}
-										// onChange={() => toggleFavorite(row.venueId)}
+										onClick={(e) => e.stopPropagation()}
 										onChange={() => toggleFavorite(row._id)}
 										className="h-5 w-5 cursor-pointer"
 									/>

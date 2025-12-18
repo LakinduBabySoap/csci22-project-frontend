@@ -210,7 +210,8 @@ function EventsPage() {
 	};
 	const columns = [
 		{
-			accessorKey: "title",
+			id: "title",
+			accessorFn: (row) => smartResolve(row, 'title', 'titleChinese'),
 			header: ({ column }) => {
 				return (
 					<div className="flex items-center">
@@ -228,8 +229,9 @@ function EventsPage() {
 			cell: ({ row }) => <div className="max-w-[250px] whitespace-normal break-words">{smartResolve(row.original, 'title', 'titleChinese') || t('events.na')}</div>,
 		},
 		{
-			accessorKey: "description",
-			header: t('events.colDesc'),
+			id: "description",
+            header: t('events.colDesc'),
+            accessorFn: (row) => smartResolve(row, 'description', 'descriptionChinese'),
 			cell: ({ row }) => {
 				const description = smartResolve(row.original, 'description', 'descriptionChinese');
 				if (!description) return <span className="text-muted-foreground text-sm">{t('events.noDesc')}</span>;
@@ -242,7 +244,11 @@ function EventsPage() {
 			},
 		},
 		{
-            accessorKey: "venue",
+            id: "venue",
+        accessorFn: (row) => {
+             const venue = row.venue;
+             return typeof venue === "string" ? venue : smartResolve(venue, 'name', 'nameChinese');
+        },
             header: t('events.colVenue'),
             cell: ({ row }) => {
                 const venue = row.original.venue;
@@ -258,8 +264,9 @@ function EventsPage() {
 			),
 		},
 		{
-			accessorKey: "presentor",
-			header: t('events.colPresenter'),
+			id: "presentor",
+            header: t('events.colPresenter'),
+            accessorFn: (row) => smartResolve(row, 'presentor', 'presenterChinese'),
 			cell: ({ row }) => (
 				<div className="max-w-[150px] whitespace-normal break-words text-sm">{smartResolve(row.original, 'presentor', 'presenterChinese') || t('events.na')}</div>
 			),

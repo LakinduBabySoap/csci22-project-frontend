@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertCircleIcon, Heart, MapPin, Calendar } from "lucide-react";
 import { getFavoriteVenues, removeFavoriteVenue } from "@/services/venues";
+import { useLanguage } from "@/hooks/LanguageContext";
 
 export const Route = createFileRoute("/profile/")({
 	component: ProfilePage,
 });
 
 function ProfilePage() {
+	const { t, resolve, translateLocation } = useLanguage();
 	const [favorites, setFavorites] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
@@ -44,21 +46,21 @@ function ProfilePage() {
 		}
 	};
 
-	if (loading) return <div className="p-8">Loading...</div>;
+	if (loading) return <div className="p-8">{t('users.loading')}</div>;
 
 	return (
 		<div className="flex flex-col py-6 px-4 sm:px-8 gap-4">
 			<header className="flex flex-col gap-2">
-				<h1 className="text-3xl font-semibold">My Favorite Venues</h1>
-				<p className="text-sm text-muted-foreground">Manage your saved cultural venues and locations.</p>
+				<h1 className="text-3xl font-semibold">{t('profile.title')}</h1>
+				<p className="text-sm text-muted-foreground">{t('profile.subtitle')}</p>
 			</header>
 
 			{favorites.length === 0 ? (
 				<Card className="mt-8">
 					<CardContent className="flex flex-col items-center justify-center py-12">
 						<Heart className="h-16 w-16 text-muted-foreground mb-4" />
-						<CardTitle className="mb-2">No favorite venues yet</CardTitle>
-						<CardDescription>Start exploring and add venues to your favorites!</CardDescription>
+						<CardTitle className="mb-2">{t('profile.emptyTitle')}</CardTitle>
+						<CardDescription>{t('profile.emptyDesc')}</CardDescription>
 					</CardContent>
 				</Card>
 			) : (
@@ -68,10 +70,10 @@ function ProfilePage() {
 							<CardHeader>
 								<div className="flex items-start justify-between">
 									<div className="flex-1">
-										<CardTitle className="line-clamp-2">{venue.name}</CardTitle>
+										<CardTitle className="line-clamp-2">{resolve(venue, 'name')}</CardTitle>
 										<CardDescription className="mt-2 flex items-center gap-1">
 											<MapPin className="h-3 w-3" />
-											{venue.latitude?.toFixed(4)}, {venue.longitude?.toFixed(4)}
+											{translateLocation(venue.district)}, {translateLocation(venue.area)}
 										</CardDescription>
 									</div>
 									<Button
@@ -87,15 +89,15 @@ function ProfilePage() {
 							<CardContent>
 								<div className="flex items-center gap-2 text-sm text-muted-foreground">
 									<Calendar className="h-4 w-4" />
-									<span>{venue.events?.length || 0} events</span>
+									<span>{venue.events?.length || 0} {t('home.eventsSection')}</span>
 								</div>
 								{venue.events && venue.events.length > 0 && (
 									<div className="mt-3 space-y-2">
-										<p className="text-sm font-medium">Upcoming Events:</p>
+										<p className="text-sm font-medium">{t('profile.upcoming')}</p>
 										<ul className="space-y-1">
 											{venue.events.slice(0, 3).map((event, idx) => (
 												<li key={idx} className="text-sm text-muted-foreground line-clamp-1">
-													• {event.title}
+													• {resolve(event, 'title')}
 												</li>
 											))}
 										</ul>
