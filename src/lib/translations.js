@@ -1,6 +1,14 @@
 // 1. Static UI Text Dictionary
 export const translations = {
 	en: {
+		errors: {
+			AUTH_INVALID_CREDENTIALS: "Invalid username or password",
+			AUTH_MISSING_FIELDS: "Username and password are required",
+			AUTH_USERNAME_RESERVED: "This username is reserved",
+			AUTH_WEAK_PASSWORD: "Password does not meet the required strength",
+			AUTH_USER_EXISTS: "Username already exists",
+			AUTH_INVALID_USER_DATA: "Invalid user data",
+		},
 		nav: {
 			events: "Event List",
 			users: "User List",
@@ -179,6 +187,14 @@ export const translations = {
 	},
 
 	zh: {
+		errors: {
+			AUTH_INVALID_CREDENTIALS: "用戶名或密碼錯誤",
+			AUTH_MISSING_FIELDS: "請輸入用戶名和密碼",
+			AUTH_USERNAME_RESERVED: "此用戶名不可使用",
+			AUTH_WEAK_PASSWORD: "密碼強度不足",
+			AUTH_USER_EXISTS: "用戶名已被使用",
+			AUTH_INVALID_USER_DATA: "用戶資料無效",
+		},
 		nav: {
 			events: "活動列表",
 			users: "用戶列表",

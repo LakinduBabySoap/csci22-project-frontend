@@ -57,12 +57,12 @@ function SignUpPage() {
 		const cleanUsername = username.trim();
 
 		if (!cleanUsername) {
-			setError("Username is required.");
+			setError(t("signup.usernameRequired"));
 			return;
 		}
 
 		if (!strongPassword) {
-			setError("Password is not strong enough. Please satisfy all rules below.");
+			setError(t("signup.weakPassword"));
 			return;
 		}
 
@@ -83,7 +83,9 @@ function SignUpPage() {
 				navigate({ to: "/login/" });
 			}, 2000);
 		} catch (err) {
-			setError(err.response?.data?.message || "Signup failed");
+			const code = err.response?.data?.code;
+			if (code) setError(t(`errors.${code}`));
+			else setError(err.response?.data?.message || t("signup.failed"));
 		} finally {
 			setLoading(false);
 		}
@@ -162,7 +164,7 @@ function SignUpPage() {
 											required
 										/>
 										{!passwordsMatch && confirm.length > 0 && (
-											<FieldDescription className="text-destructive">Passwords do not match.</FieldDescription>
+											<FieldDescription className="text-destructive">{t("signup.passwordMismatch")}</FieldDescription>
 										)}
 									</Field>
 
